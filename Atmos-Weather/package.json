@@ -1,0 +1,9 @@
+{
+  "name": "atmos-weather",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Atmos — field weather instrument. Static frontend with two serverless API proxies.",
+  "engines": {
+    "node": ">=18"
+  }
+}

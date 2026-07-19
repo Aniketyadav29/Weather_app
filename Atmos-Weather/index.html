@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atmos — Field Weather Instrument</title>
+    <meta name="description" content="Live weather, air quality, and nearby places to visit — read like an instrument panel, not a search box.">
+    <link rel="shortcut icon" href="./favicon.png" type="image/x-icon">
+
+    <!-- TailwindCSS CDN (layout utilities only — visual identity is custom below) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,450;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #0a0e15;
+            --ink-2: #121926;
+            --ink-3: #1a2333;
+            --paper: #efe8d8;
+            --brass: #c99a4b;
+            --brass-hi: #e8c481;
+            --cyan: #6fc9d6;
+            --rose: #dd7a5f;
+            --line: rgba(201, 154, 75, 0.22);
+            --line-soft: rgba(148, 163, 184, 0.14);
+            --text-hi: #f4efe2;
+            --text-mid: #c9d0dd;
+            --text-lo: #8993a6;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+            color: var(--text-mid);
+            background: var(--ink);
+            background-image:
+                radial-gradient(ellipse 60rem 40rem at 8% -10%, rgba(201, 154, 75, 0.10), transparent 60%),
+                radial-gradient(ellipse 50rem 40rem at 100% 10%, rgba(111, 201, 214, 0.08), transparent 55%),
+                radial-gradient(ellipse 60rem 50rem at 50% 120%, rgba(221, 122, 95, 0.06), transparent 60%);
+            background-attachment: fixed;
+        }
+
+        .font-display { font-family: 'Fraunces', serif; }
+        .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+        ::selection { background: rgba(201, 154, 75, 0.35); color: var(--text-hi); }
+
+        /* ---------- Header ---------- */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10, 14, 21, 0.82);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line-soft);
+        }
+
+        .brand-dial {
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--brass);
+            background:
+                conic-gradient(from 220deg, rgba(201,154,75,0.35), transparent 40%, rgba(111,201,214,0.25) 70%, transparent);
+            position: relative;
+            flex-shrink: 0;
+        }
+        .brand-dial::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 4px; height: 4px;
+            background: var(--brass-hi);
+            border-radius: 999px;
+            box-shadow: 0 0 8px 2px rgba(232, 196, 129, 0.7);
+            transform: translate(-50%, -50%) translateY(-8px);
+        }
+
+        .nav-link {
+            color: var(--text-lo);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.5rem 0.15rem;
+            position: relative;
+            transition: color 180ms ease;
+        }
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 100%;
+            bottom: -2px;
+            height: 1.5px;
+            background: var(--brass);
+            transition: right 220ms ease;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-hi); }
+        .nav-link:hover::after, .nav-link.active::after { right: 0; }
+
+        .unit-toggle {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 3px;
+            display: inline-flex;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: var(--ink-2);
+        }
+        .unit-toggle button {
+            padding: 0.3rem 0.65rem;
+            border-radius: 999px;
+            color: var(--text-lo);
+            transition: all 180ms ease;
+        }
+        .unit-toggle button.active {
+            background: var(--brass);
+            color: var(--ink);
+        }
+
+        /* ---------- Sky strip (signature element) ---------- */
+        .sky-strip {
+            position: relative;
+            height: 34px;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: linear-gradient(90deg,
+                #0a1020 0%, #0f1a33 12%,
+                #3a3a5c 20%, #b96a4a 27%, #e3b96a 33%,
+                #bfe3ec 42%, #d8f0f4 50%, #bfe3ec 58%,
+                #e3b96a 67%, #b96a4a 73%, #3a3a5c 80%,
+                #0f1a33 88%, #0a1020 100%);
+        }
+        .sky-now {
+            position: absolute;
+            top: 50%;
+            width: 10px; height: 10px;
+            background: var(--ink);
+            border: 2px solid var(--text-hi);
+            border-radius: 999px;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 0 4px rgba(10,14,21,0.35);
+            transition: left 600ms ease;
+        }
+        .sky-marker {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 1.5px;
+            background: rgba(10,14,21,0.55);
+            transform: translateX(-50%);
+        }
+        .sky-marker span {
+            position: absolute;
+            top: -1.35rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--text-lo);
+        }
+        .sky-hours {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--text-lo);
+            letter-spacing: 0.04em;
+            margin-top: 0.4rem;
+            padding: 0 0.1rem;
+        }
+
+        /* ---------- Panels / cards ---------- */
+        .panel {
+            background: var(--ink-2);
+            border: 1px solid var(--line-soft);
+            border-radius: 16px;
+        }
+        .panel-brass {
+            border: 1px solid var(--line);
+        }
+
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--brass);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .eyebrow::before {
+            content: "";
+            width: 1.4rem;
+            height: 1px;
+            background: var(--brass);
+        }
+
+        .hero-head {
+            color: var(--text-hi);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .hero-copy { color: var(--text-lo); }
+
+        .input-shell {
+            position: relative;
+            background: var(--ink-3);
+            border: 1px solid var(--line-soft);
+            border-radius: 14px;
+            transition: border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .input-shell:focus-within {
+            border-color: var(--brass);
+            box-shadow: 0 0 0 3px rgba(201, 154, 75, 0.16);
+        }
+        .control-tall { min-height: 3.4rem; }
+        input.field {
+            background: transparent;
+            color: var(--text-hi);
+        }
+        input.field::placeholder { color: var(--text-lo); }
+
+        /* ---------- Autocomplete ---------- */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            z-index: 40;
+            background: var(--ink-3);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow-y: auto;
+            max-height: 320px;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+        }
+        .autocomplete-item {
+            padding: 0.7rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--line-soft);
+            transition: background 120ms ease;
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover, .autocomplete-item.active { background: rgba(201, 154, 75, 0.14); }
+        .autocomplete-item .name { color: var(--text-hi); font-weight: 600; font-size: 0.9rem; }
+        .autocomplete-item .meta {
+            color: var(--text-lo);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            margin-top: 0.1rem;
+        }
+        .autocomplete-empty {
+            padding: 1rem;
+            color: var(--text-lo);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        /* ---------- Recent searches ---------- */
+        .recent-chip-row {
+            display: none;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+        }
+        .recent-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--text-lo);
+            background: var(--ink-2);
+            transition: all 160ms ease;
+        }
+        .recent-chip:hover { border-color: var(--brass); color: var(--text-hi); transform: translateY(-1px); }
+
+        /* ---------- Hourly strip ---------- */
+        .hour-strip {
+            display: flex;
+            gap: 0.65rem;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+        }
+        .hour-card {
+            flex: 0 0 auto;
+            width: 4.6rem;
+            background: var(--ink-2);
+            border: 1px solid var(--line-soft);
+            border-radius: 14px;
+            transition: border-color 180ms ease, transform 180ms ease;
+        }
+        .hour-card:hover { border-color: var(--line); transform: translateY(-2px); }
+        .hour-card .val { font-family: 'JetBrains Mono', monospace; color: var(--text-hi); }
+
+        /* ---------- Alerts ---------- */
+        .alert-banner {
+            border: 1px solid var(--rose);
+            border-radius: 18px;
+            background: linear-gradient(160deg, rgba(221,122,95,0.16), rgba(221,122,95,0.05));
+            padding: 1.25rem 1.4rem;
+        }
+        .alert-banner.calm {
+            border: 1px dashed var(--line);
+            background: var(--ink-2);
+        }
+        .alert-item {
+            margin-top: 0.9rem;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(221,122,95,0.28);
+        }
+        .alert-item:first-of-type { margin-top: 0.6rem; padding-top: 0; border-top: none; }
+
+        .btn-brass {
+            background: var(--brass);
+            color: var(--ink);
+            font-weight: 700;
+            border-radius: 12px;
+            transition: transform 160ms ease, background 160ms ease;
+        }
+        .btn-brass:hover { background: var(--brass-hi); transform: translateY(-1px); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--text-hi);
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 160ms ease;
+        }
+        .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+
+        .stat-tick {
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            background: var(--ink-2);
+        }
+        .stat-tick p.num { color: var(--text-hi); }
+        .stat-tick p.label { color: var(--text-lo); }
+
+        /* ---------- Weather readout ---------- */
+        .readout-card {
+            background: linear-gradient(160deg, var(--ink-3) 0%, var(--ink-2) 100%);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .readout-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 85% 0%, rgba(111,201,214,0.16), transparent 55%);
+            pointer-events: none;
+        }
+        .temp-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--text-hi);
+            line-height: 0.95;
+        }
+
+        .dial-card {
+            background: var(--ink-2);
+            border: 1px solid var(--line-soft);
+            border-radius: 16px;
+            transition: border-color 180ms ease, transform 180ms ease;
+        }
+        .dial-card:hover { border-color: var(--line); transform: translateY(-2px); }
+        .dial-card .val { font-family: 'JetBrains Mono', monospace; color: var(--text-hi); }
+        .dial-card .lbl { color: var(--text-lo); }
+        .dial-swatch {
+            width: 2.6rem; height: 2.6rem;
+            border-radius: 999px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--line);
+        }
+
+        .field-note {
+            border: 1px dashed var(--line);
+            border-radius: 14px;
+            background: rgba(201, 154, 75, 0.05);
+        }
+
+        /* AQI gauge */
+        .gauge {
+            width: 6.5rem; height: 6.5rem;
+            border-radius: 999px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .gauge-inner {
+            width: 5rem; height: 5rem;
+            border-radius: 999px;
+            background: var(--ink-2);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .gauge-inner .n { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text-hi); font-size: 1.6rem; line-height: 1; }
+        .gauge-inner .t { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-lo); margin-top: 0.2rem; }
+
+        .pollutant-chip {
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            background: var(--ink-2);
+        }
+
+        /* Places */
+        .place-card {
+            border: 1px solid var(--line-soft);
+            border-radius: 16px;
+            background: var(--ink-2);
+            transition: transform 180ms ease, border-color 180ms ease;
+        }
+        .place-card:hover { transform: translateY(-3px); border-color: var(--brass); }
+        .source-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* coverage */
+        .coverage-card {
+            background: var(--ink-2);
+            border: 1px solid var(--line-soft);
+            border-radius: 16px;
+        }
+
+        .isobar {
+            height: 1px;
+            background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+        }
+
+        .slide-section { scroll-margin-top: 5.5rem; }
+
+        footer.site-footer {
+            border-top: 1px solid var(--line-soft);
+            color: var(--text-lo);
+        }
+
+        /* Loading shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, var(--ink-2) 0%, var(--ink-3) 50%, var(--ink-2) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        @media (max-width: 640px) {
+            .temp-num { font-size: 3.6rem !important; }
+            .stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
+
+        <header class="site-nav -mx-4 px-4 py-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="mx-auto flex max-w-6xl flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <a href="index.html" class="inline-flex items-center gap-3">
+                        <span class="brand-dial"></span>
+                        <span class="font-display text-xl tracking-tight" style="color: var(--text-hi);">Atmos</span>
+                        <span class="font-mono hidden text-xs uppercase tracking-widest sm:inline" style="color: var(--text-lo);">— field instrument</span>
+                    </a>
+                    <div class="flex items-center gap-5">
+                        <nav class="flex flex-wrap items-center gap-4" id="mainNav">
+                            <a class="nav-link" href="#home" data-section="home">Home</a>
+                            <a class="nav-link" href="#weather" data-section="weather">Weather</a>
+                            <a class="nav-link" href="#aqi" data-section="aqi">AQI</a>
+                            <a class="nav-link" href="#places" data-section="places">Places</a>
+                            <a class="nav-link" href="#coverage" data-section="coverage">Coverage</a>
+                        </nav>
+                        <div class="unit-toggle" id="unitToggle">
+                            <button type="button" data-unit="c" class="active">°C</button>
+                            <button type="button" data-unit="f">°F</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="sky-strip" id="skyStrip">
+                        <div class="sky-now" id="skyNow" style="left: 50%;"></div>
+                        <div class="sky-marker" id="skySunrise" style="display:none;"><span id="skySunriseLabel"></span></div>
+                        <div class="sky-marker" id="skySunset" style="display:none;"><span id="skySunsetLabel"></span></div>
+                    </div>
+                    <div class="sky-hours">
+                        <span>12a</span><span>3a</span><span>6a</span><span>9a</span><span>12p</span><span>3p</span><span>6p</span><span>9p</span><span>12a</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section id="home" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2 lg:py-16">
+            <div class="space-y-7">
+                <div class="eyebrow">No. 01 — Current reading</div>
+                <div class="space-y-5">
+                    <h1 class="font-display hero-head max-w-2xl text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
+                        Weather, read like an instrument — not guessed at.
+                    </h1>
+                    <p class="hero-copy max-w-xl text-lg leading-8">
+                        Search any city, village, state, country, postcode, or coordinate pair. Atmos pairs the
+                        live reading with air quality and a short list of places worth visiting nearby —
+                        one panel, three instruments.
+                    </p>
+                </div>
+
+                <div class="input-shell p-4 sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <label class="sr-only" for="cityName">Place name</label>
+                        <input type="text" name="cityName" id="cityName" placeholder="Try Jaipur, Kerala, Tokyo, or 28.61,77.20"
+                            autocomplete="off"
+                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
+                        <button id="searchBtn" type="submit"
+                            class="btn-brass control-tall px-6">
+                            Read weather
+                        </button>
+                        <button id="locationBtn" type="button"
+                            class="btn-outline control-tall px-6">
+                            Use my location
+                        </button>
+                    </div>
+                    <div class="autocomplete-dropdown" id="cityAutocomplete" style="display:none;"></div>
+                </div>
+                <div class="recent-chip-row" id="recentChipsHome"></div>
+
+                <div class="stat-grid grid max-w-2xl grid-cols-3 gap-3 text-center">
+                    <div class="stat-tick p-4">
+                        <p class="num font-mono text-xl font-bold">24/7</p>
+                        <p class="label text-xs font-semibold uppercase tracking-wider">Live updates</p>
+                    </div>
+                    <div class="stat-tick p-4">
+                        <p class="num font-mono text-xl font-bold">AQI</p>
+                        <p class="label text-xs font-semibold uppercase tracking-wider">Included</p>
+                    </div>
+                    <div class="stat-tick p-4">
+                        <p class="num font-mono text-xl font-bold">Global</p>
+                        <p class="label text-xs font-semibold uppercase tracking-wider">Any place</p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="panel panel-brass overflow-hidden rounded-2xl">
+                <div class="p-6 sm:p-8" style="background: linear-gradient(160deg, rgba(201,154,75,0.14), rgba(111,201,214,0.08));">
+                    <p class="eyebrow">Log book</p>
+                    <h2 class="font-display mt-3 text-2xl" style="color: var(--text-hi);">What Atmos does differently</h2>
+                    <p class="mt-2 max-w-md text-sm leading-6" style="color: var(--text-lo);">
+                        Most weather sites stop at temperature. Atmos adds the two questions people actually
+                        ask next: is the air safe to breathe, and what's worth seeing nearby.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 gap-3 p-5 sm:p-6">
+                    <div class="field-note p-5">
+                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--brass);">01 · Weather</p>
+                        <p class="mt-1 text-sm" style="color: var(--text-mid);">Temperature, wind, humidity, pressure, visibility, 3-day outlook, sunrise & sunset.</p>
+                    </div>
+                    <div class="field-note p-5">
+                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--cyan);">02 · Air quality</p>
+                        <p class="mt-1 text-sm" style="color: var(--text-mid);">US EPA & UK DEFRA indices plus PM2.5, PM10, CO, NO2, O3, SO2 — read as a gauge, not a table.</p>
+                    </div>
+                    <div class="field-note p-5">
+                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--rose);">03 · Places</p>
+                        <p class="mt-1 text-sm" style="color: var(--text-mid);">Wikidata-sourced attractions near your search, with a Wikipedia fallback.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="weather" class="slide-section grid items-start gap-10 py-12 lg:grid-cols-5">
+            <div class="lg:col-span-2 lg:sticky lg:top-28">
+                <div class="eyebrow">No. 02 — Conditions</div>
+                <h2 class="font-display mt-5 text-4xl leading-tight" style="color: var(--text-hi);">Current weather, in full.</h2>
+                <p class="mt-4 text-lg leading-8" style="color: var(--text-lo);">
+                    This panel resolves any place WeatherAPI can match: city, village, state, country,
+                    postcode, airport code, coordinates, or your GPS location — plus a short-range outlook.
+                </p>
+            </div>
+            <div id="weatherDetails" class="grid grid-cols-1 gap-4 lg:col-span-3">
+                <div class="field-note p-8 text-center">
+                    <p class="font-display text-xl" style="color: var(--text-hi);">Search any place to begin</p>
+                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
+                        Use the search box on the Home panel — the reading appears here.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="aqi" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2">
+            <div class="space-y-6">
+                <div class="eyebrow">No. 03 — Air quality</div>
+                <h2 class="font-display text-4xl leading-tight" style="color: var(--text-hi);">Is the air safe to breathe?</h2>
+                <p class="text-lg leading-8" style="color: var(--text-lo);">
+                    Enter a city, village, state, country, postcode, or coordinates to focus only on air quality.
+                </p>
+                <div class="input-shell p-4 sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <label class="sr-only" for="aqiCityName">AQI place name</label>
+                        <input type="text" name="aqiCityName" id="aqiCityName" placeholder="AQI search, e.g. Delhi or India"
+                            autocomplete="off"
+                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
+                        <button id="aqiBtn" type="button" class="btn-brass control-tall px-6">
+                            Check AQI
+                        </button>
+                    </div>
+                    <div class="autocomplete-dropdown" id="aqiAutocomplete" style="display:none;"></div>
+                </div>
+                <div class="recent-chip-row" id="recentChipsAqi"></div>
+            </div>
+            <div id="aqiDetails" class="grid grid-cols-1 gap-4">
+                <div class="field-note p-8 text-center">
+                    <p class="font-display text-xl" style="color: var(--text-hi);">AQI reading appears here</p>
+                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
+                        Search a place to see PM2.5, PM10, CO, NO2, O3, SO2, and EPA index values.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="places" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2">
+            <div class="space-y-6">
+                <div class="eyebrow">No. 04 — Nearby</div>
+                <h2 class="font-display text-4xl leading-tight" style="color: var(--text-hi);">Worth visiting nearby.</h2>
+                <p class="text-lg leading-8" style="color: var(--text-lo);">
+                    Search any country, state, city, village, or region to surface popular places to visit
+                    in or near it.
+                </p>
+                <div class="input-shell p-4 sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <label class="sr-only" for="placeCityName">Famous places location</label>
+                        <input type="text" name="placeCityName" id="placeCityName" placeholder="Places search, e.g. Rajasthan or Paris"
+                            autocomplete="off"
+                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
+                        <button id="placeBtn" type="button" class="btn-outline control-tall px-6">
+                            Find places
+                        </button>
+                    </div>
+                    <div class="autocomplete-dropdown" id="placeAutocomplete" style="display:none;"></div>
+                </div>
+                <div class="recent-chip-row" id="recentChipsPlaces"></div>
+            </div>
+            <div id="placeDetails" class="grid grid-cols-1 gap-4">
+                <div class="field-note p-8 text-center">
+                    <p class="font-display text-xl" style="color: var(--text-hi);">Places appear here</p>
+                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
+                        Search any location to see attractions, monuments, parks, and landmarks.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="coverage" class="slide-section py-12">
+            <div class="isobar mb-10"></div>
+            <div class="grid gap-8 lg:grid-cols-2 lg:items-end">
+                <div>
+                    <div class="eyebrow">No. 05 — Coverage</div>
+                    <h2 class="font-display mt-5 text-4xl leading-tight" style="color: var(--text-hi);">Built for any kind of place.</h2>
+                    <p class="mt-4 text-lg leading-8" style="color: var(--text-lo);">
+                        The search treats your query as a place, not just a city field. Atmos returns the best
+                        match for villages, towns, cities, states, countries, postcodes, airports, and
+                        latitude-longitude coordinates.
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="coverage-card p-5">
+                        <p class="font-display text-2xl" style="color: var(--brass-hi);">Cities</p>
+                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Mumbai, London, Tokyo</p>
+                    </div>
+                    <div class="coverage-card p-5">
+                        <p class="font-display text-2xl" style="color: var(--cyan);">Villages</p>
+                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Search by exact place name</p>
+                    </div>
+                    <div class="coverage-card p-5">
+                        <p class="font-display text-2xl" style="color: var(--rose);">States</p>
+                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Kerala, Rajasthan, California</p>
+                    </div>
+                    <div class="coverage-card p-5">
+                        <p class="font-display text-2xl" style="color: var(--text-hi);">Countries</p>
+                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">India, Japan, Canada</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="site-footer mt-6 pt-8 text-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p>Atmos — weather, air quality, and places, read as one instrument panel.</p>
+                <p class="font-mono text-xs" style="color: var(--text-lo);">Data: WeatherAPI · Wikidata · Wikipedia</p>
+            </div>
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

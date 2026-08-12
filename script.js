@@ -1104,9 +1104,33 @@
     }
 
     // ==========================================================================
-    // 12. VISITABLE PLACES & CULTURAL EXPLORER (COMPREHENSIVE WIKIPEDIA & INDIA ENGINE)
+    // 12. VISITABLE PLACES & CULTURAL EXPLORER (COMPREHENSIVE WIKIPEDIA ENGINE)
     // ==========================================================================
     const CITY_LANDMARKS_DB = {
+        'san francisco': [
+            { title: 'Golden Gate Bridge', category: 'ICONIC SUSPENSION BRIDGE', dist: '6.2 km', img: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=600&q=80', extract: 'World-famous suspension bridge spanning the Golden Gate strait, opening in 1937.' },
+            { title: 'Alcatraz Island', category: 'HISTORIC ISLAND PRISON', dist: '4.8 km', img: 'https://images.unsplash.com/photo-1541464522988-31b420f688b9?auto=format&fit=crop&w=600&q=80', extract: 'Small island in San Francisco Bay, site of a historic lighthouse, military fort, and federal penitentiary.' },
+            { title: 'Fisherman\'s Wharf & Pier 39', category: 'WATERFRONT PRECINCT', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=600&q=80', extract: 'Famous waterfront precinct featuring seafood dining, sea lions, historic ships, and scenic bay views.' },
+            { title: 'Palace of Fine Arts', category: 'MONUMENTAL ARCHITECTURE', dist: '4.1 km', img: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=600&q=80', extract: 'Monumental structure constructed for the 1915 Panama-Pacific Exposition in the Marina District.' },
+            { title: 'Coit Tower & Telegraph Hill', category: 'OBSERVATION TOWER', dist: '2.1 km', img: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=600&q=80', extract: '210-foot tower atop Telegraph Hill providing 360-degree views of San Francisco and historic murals.' },
+            { title: 'Lombard Street & Cable Cars', category: 'HISTORIC STREETSCAPE', dist: '1.9 km', img: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=600&q=80', extract: 'Famous for its steep, one-block section with eight hairpin turns and historic cable car system.' }
+        ],
+        'paris': [
+            { title: 'Eiffel Tower', category: 'ICONIC TOWER', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Wrought-iron lattice tower on the Champ de Mars in Paris, constructed for the 1889 World\'s Fair.' },
+            { title: 'Louvre Museum', category: 'NATIONAL ART MUSEUM', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'World\'s largest art museum and historic monument housing the Mona Lisa and Venus de Milo.' },
+            { title: 'Notre-Dame de Paris', category: 'GOTHIC CATHEDRAL', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80', extract: 'Medieval Catholic cathedral on the Île de la Cité, considered one of the finest examples of French Gothic architecture.' },
+            { title: 'Arc de Triomphe', category: 'TRIUMPHAL ARCH', dist: '4.2 km', img: 'https://images.unsplash.com/photo-1509299349698-ab22323ae692?auto=format&fit=crop&w=600&q=80', extract: 'Standing at the western end of the Champs-Élysées, honoring those who fought for France.' },
+            { title: 'Sacré-Cœur, Paris', category: 'BASILICA MONUMENT', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Roman Catholic church dedicated to the Sacred Heart of Jesus, sitting atop Montmartre hill.' },
+            { title: 'Musée d\'Orsay', category: 'IMPRESSIONIST MUSEUM', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'Museum on the left bank of the Seine housed in a Beaux-Arts railway station built between 1898 and 1900.' }
+        ],
+        'dubai': [
+            { title: 'Burj Khalifa', category: 'WORLD\'S TALLEST TOWER', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'World\'s tallest building at 828 meters, featuring observation decks, lounges, and fountains.' },
+            { title: 'The Dubai Mall & Fountain', category: 'SHOPPING & SHOW', dist: '0.8 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'Massive shopping complex with aquarium, ice rink, and synchronized musical fountain shows.' },
+            { title: 'Burj Al Arab', category: 'LUXURY LANDMARK', dist: '11.5 km', img: 'https://images.unsplash.com/photo-1526495124112-1056c40e0483?auto=format&fit=crop&w=600&q=80', extract: 'Iconic sail-shaped luxury hotel standing on an artificial island off Jumeirah Beach.' },
+            { title: 'Palm Jumeirah', category: 'MAN-MADE ARCHIPELAGO', dist: '15.0 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'Tree-shaped artificial archipelago known for luxury resorts, beach clubs, and boardwalks.' },
+            { title: 'Museum of the Future', category: 'FUTURISTIC ARCHITECTURE', dist: '2.8 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'Architectural masterpiece featuring Arabic calligraphy facade dedicated to innovative futures.' },
+            { title: 'Dubai Frame', category: 'ARCHITECTURAL FRAME', dist: '5.2 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: '150-meter tall observation frame linking views of historic Old Dubai with modern skyscrapers.' }
+        ],
         'delhi': [
             { title: 'Red Fort (Lal Qila)', category: 'HISTORIC FORTRESS', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1592639296346-560c37a0f711?auto=format&fit=crop&w=600&q=80', extract: 'Historic fort in Old Delhi that served as the main residence of the Mughal Emperors for nearly 200 years.' },
             { title: 'Qutub Minar', category: 'UNESCO MONUMENT', dist: '12.1 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: '73-metre tall minaret forming part of the Qutb complex, a UNESCO World Heritage Site in New Delhi.' },
@@ -1255,6 +1279,10 @@
 
     // Alias Lookup Map for Cities
     const CITY_ALIASES = {
+        'sf': 'san francisco',
+        'frisco': 'san francisco',
+        'nyc': 'new york',
+        'la': 'los angeles',
         'new delhi': 'delhi',
         'old delhi': 'delhi',
         'bombay': 'mumbai',
@@ -1280,56 +1308,59 @@
             </div>
         `;
 
-        let rawCity = (cityName || '').trim().split(',')[0].toLowerCase();
+        const rawCity = (cityName || '').trim().split(',')[0].toLowerCase();
         const cleanCity = CITY_ALIASES[rawCity] || rawCity;
 
-        // 1. Check Curated High-Precision Database
+        // 1. Check Curated High-Precision Database (Direct or Exact Match)
         if (CITY_LANDMARKS_DB[cleanCity]) {
             renderCuratedBentoCards(CITY_LANDMARKS_DB[cleanCity], cityName, lat, lon);
             return;
         }
 
-        // Check substring matches for DB keys
+        // Check exact prefix match for multi-word city names (e.g. "san francisco, california" -> "san francisco")
         for (const dbKey in CITY_LANDMARKS_DB) {
-            if (cleanCity.includes(dbKey) || dbKey.includes(cleanCity)) {
+            if (cleanCity === dbKey || cleanCity.startsWith(dbKey)) {
                 renderCuratedBentoCards(CITY_LANDMARKS_DB[dbKey], cityName, lat, lon);
                 return;
             }
         }
 
-        // 2. Multi-Query Wikipedia Search API for City Landmarks
+        // 2. High-Precision Wikipedia Geosearch + City Landmarks API Engine
         try {
-            const searchQueries = [
-                `Tourist attractions in ${cityName.split(',')[0]}`,
-                `Places to visit in ${cityName.split(',')[0]}`,
-                `Landmarks in ${cityName.split(',')[0]}`
-            ];
-
-            let searchHits = [];
-            for (const queryTerm of searchQueries) {
-                const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(queryTerm)}&srnamespace=0&srlimit=15&format=json&origin=*`;
-                const res = await fetch(searchUrl);
-                if (res.ok) {
-                    const data = await res.json();
-                    const hits = data.query?.search || [];
-                    searchHits.push(...hits);
-                    if (searchHits.length >= 6) break;
-                }
-            }
-            
-            // Deduplicate titles and filter out meta articles
-            const seenTitles = new Set();
-            const filteredTitles = [];
-            
-            for (const h of searchHits) {
-                const title = h.title;
-                if (!seenTitles.has(title) && !/bombing|battle|earthquake|disaster|election|constituency|history of|demographics of|list of|timeline of|geography of/i.test(title)) {
-                    seenTitles.add(title);
-                    filteredTitles.push(title);
-                }
+            // Geosearch anchored to Lat/Lon (20km radius)
+            const geoUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=20000&gslimit=35&format=json&origin=*`;
+            const geoRes = await fetch(geoUrl);
+            let geoHits = [];
+            if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                geoHits = geoData.query?.geosearch || [];
             }
 
-            const selectedTitles = filteredTitles.slice(0, 9);
+            const skipRegex = /station|district|suburb|constituency|school|college|university|hospital|department|line|airport|subdivision|railway|football|basketball|county|ward|road|street|avenue/i;
+            const validGeoTitles = geoHits.filter(g => !skipRegex.test(g.title)).map(g => g.title);
+
+            // Targeted Landmark Search Query for the City
+            const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanCity + ' landmarks tourist attractions')}&srlimit=15&format=json&origin=*`;
+            const searchRes = await fetch(searchUrl);
+            let searchTitles = [];
+            if (searchRes.ok) {
+                const searchData = await searchRes.json();
+                searchTitles = (searchData.query?.search || []).map(s => s.title);
+            }
+
+            const combinedTitles = Array.from(new Set([...validGeoTitles, ...searchTitles]));
+            const metaFilter = /^(list of|history of|culture of|geography of|economy of|demographics of|timeline of|politics of|outline of|tourist attractions in|climate of|transport in|geology of)/i;
+            
+            const finalTitles = [];
+            for (const t of combinedTitles) {
+                if (t.toLowerCase() === cleanCity) continue;
+                if (metaFilter.test(t)) continue;
+                if (validGeoTitles.includes(t) || t.toLowerCase().includes(cleanCity)) {
+                    finalTitles.push(t);
+                }
+            }
+
+            const selectedTitles = finalTitles.slice(0, 8);
 
             if (selectedTitles.length > 0) {
                 const wikiCardsData = [];
@@ -1338,18 +1369,18 @@
                         const sumRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
                         if (sumRes.ok) {
                             const sum = await sumRes.json();
-                            if (sum.extract && sum.title) {
+                            if (sum.extract && sum.extract.length > 30 && sum.title) {
                                 wikiCardsData.push({
                                     title: sum.title,
                                     extract: sum.extract,
                                     img: sum.thumbnail?.source || 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80',
-                                    category: sum.description || 'CULTURAL LANDMARK',
-                                    dist: 'Local Center'
+                                    category: sum.description ? sum.description.toUpperCase() : 'CULTURAL LANDMARK',
+                                    dist: 'Local Area'
                                 });
                             }
                         }
                     } catch (e) {
-                        // ignore individual sum error
+                        // ignore single fetch error
                     }
                 }
 
@@ -1359,10 +1390,10 @@
                 }
             }
         } catch (err) {
-            console.warn('Wikipedia Search API error:', err);
+            console.warn('Wikipedia Places API error:', err);
         }
 
-        // 3. Fallback to Dynamic City Bento Cards
+        // 3. Fallback to Dynamic City Bento Cards if no specific landmarks found
         renderFallbackBentoCards(cityName, lat, lon);
     }
 

@@ -1,413 +1,655 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atmos — Field Weather Instrument</title>
-    <meta name="description" content="Live weather, air quality, nearby places, interactive maps, and side-by-side comparison — read like an instrument panel, not a search box.">
-    <link rel="shortcut icon" href="./favicon.png" type="image/x-icon">
+    <title>Atmos — Field Weather Instrument | 3D Precision Telemetry</title>
+    <meta name="description" content="Recruiter-ready 3D animated weather telemetry instrument panel with scientific air quality metrics, interactive GIS topographic map, solar timeline, and cultural explorer.">
+    <meta name="theme-color" content="#070d19">
 
-    <!-- TailwindCSS CDN (layout utilities) -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google Fonts: Fraunces (Headlines), JetBrains Mono (Telemetry), Inter (Body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,450;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- Leaflet OpenStreetMap CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Main Design System CSS -->
-    <link rel="stylesheet" href="./index.css">
+    <!-- Leaflet GIS Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="index.css">
+
+    <!-- Three.js & Leaflet JS CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="script.js" defer></script>
 </head>
+<body>
 
-<body class="min-h-screen">
-    <div class="atmos-3d-scene" aria-hidden="true">
-        <div class="scene-orbit orbit-one"></div>
-        <div class="scene-orbit orbit-two"></div>
-        <div class="scene-globe">
-            <span class="globe-grid globe-grid-a"></span>
-            <span class="globe-grid globe-grid-b"></span>
-            <span class="globe-light"></span>
-        </div>
-        <div class="scene-satellite satellite-one"></div>
-        <div class="scene-satellite satellite-two"></div>
+    <!-- Background Ambient Glow & Mesh -->
+    <div class="ambient-background">
+        <div class="glow-orb glow-cyan"></div>
+        <div class="glow-orb glow-amber"></div>
+        <div class="glow-orb glow-indigo"></div>
+        <div class="grid-overlay"></div>
     </div>
-    <main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
 
-        <!-- HEADER / NAVIGATION -->
-        <header class="site-nav -mx-4 px-4 py-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div class="mx-auto flex max-w-6xl flex-col gap-4">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <a href="index.html" class="inline-flex items-center gap-3">
-                        <span class="brand-dial"></span>
-                        <span class="font-display text-xl tracking-tight" style="color: var(--text-hi);">Atmos</span>
-                        <span class="font-mono hidden text-xs uppercase tracking-widest sm:inline" style="color: var(--text-lo);">— field instrument</span>
-                        <span id="demoBadge" class="font-mono text-[0.65rem] px-2 py-0.5 rounded-full border border-yellow-600/40 text-yellow-500 bg-yellow-950/20 hidden">DEMO MODE</span>
-                    </a>
-                    <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-                        <nav class="flex flex-wrap items-center gap-3 sm:gap-4" id="mainNav">
-                            <a class="nav-link" href="#home" data-section="home">Home</a>
-                            <a class="nav-link" href="#weather" data-section="weather">Weather</a>
-                            <a class="nav-link" href="#aqi" data-section="aqi">AQI</a>
-                            <a class="nav-link" href="#places" data-section="places">Places</a>
-                            <a class="nav-link" href="#mapSection" data-section="mapSection">Map</a>
-                        </nav>
-                        <div class="flex items-center gap-2">
-                            <button id="compareBtn" type="button" class="icon-btn" title="Compare two locations side-by-side">
-                                ⚖️ Compare
-                            </button>
-                            <button id="exportReportBtn" type="button" class="icon-btn" title="Export weather report to clipboard">
-                                📋 Export
-                            </button>
-                            <button id="settingsBtn" type="button" class="icon-btn" title="Settings & API Key">
-                                ⚙️
-                            </button>
-                            <div class="unit-toggle" id="unitToggle">
-                                <button type="button" data-unit="c" class="active">°C</button>
-                                <button type="button" data-unit="f">°F</button>
+    <!-- Navigation / Header Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-logo">
+                <div class="logo-icon-wrapper">
+                    <i class="fa-solid fa-compass-drafting logo-icon"></i>
+                    <span class="logo-pulse"></span>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">ATMOS</span>
+                    <span class="brand-sub">FIELD WEATHER INSTRUMENT</span>
+                </div>
+            </div>
+
+            <!-- Engine Pipeline & Status Badge -->
+            <div class="pipeline-badge" id="pipeline-status">
+                <span class="status-dot"></span>
+                <span class="status-text" id="status-text">PIPELINE: INITIALIZING...</span>
+            </div>
+
+            <!-- Live Telemetry Clock -->
+            <div class="telemetry-clock">
+                <div class="clock-item">
+                    <span class="clock-label">SYS UTC</span>
+                    <span class="clock-value" id="utc-time">00:00:00 UTC</span>
+                </div>
+                <div class="clock-item">
+                    <span class="clock-label">LOCAL TIME</span>
+                    <span class="clock-value" id="local-time">00:00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- ==========================================
+             SECTION 1: HERO & SEARCH COMMAND CENTER (THE 3D STAGE)
+             ========================================== -->
+        <section id="hero-stage" class="hero-section">
+            <div class="section-container hero-grid">
+                
+                <!-- Search & Location Command Column -->
+                <div class="search-command-panel">
+                    <div class="glass-card command-card">
+                        <div class="card-header-tag">
+                            <i class="fa-solid fa-crosshairs"></i> SEARCH COMMAND CENTER
+                        </div>
+                        <h1 class="hero-title">Global Meteorological Telemetry</h1>
+                        <p class="hero-subtitle">High-precision field measurements & scientific atmospheric analysis across global coordinates.</p>
+
+                        <!-- Centralized Search Bar -->
+                        <div class="search-box-wrapper">
+                            <div class="search-input-group">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="city-search" placeholder="Search city, coordinates, airport IATA..." autocomplete="off" />
+                                <button type="button" id="search-btn" class="btn-cyan">
+                                    <span>EXECUTE</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                                <button type="button" id="geo-btn" class="btn-icon-glass" title="Use GPS Location">
+                                    <i class="fa-solid fa-location-crosshairs"></i>
+                                </button>
+                            </div>
+                            <!-- Autocomplete Dropdown -->
+                            <div id="autocomplete-results" class="autocomplete-dropdown hidden"></div>
+                        </div>
+
+                        <!-- Quick Location Presets -->
+                        <div class="preset-locations">
+                            <span class="preset-label">PRESETS:</span>
+                            <div class="preset-pills">
+                                <button class="preset-chip" data-city="Tokyo">Tokyo</button>
+                                <button class="preset-chip" data-city="London">London</button>
+                                <button class="preset-chip" data-city="Jaipur">Jaipur</button>
+                                <button class="preset-chip" data-city="New York">New York</button>
+                                <button class="preset-chip" data-city="Sydney">Sydney</button>
+                            </div>
+                        </div>
+
+                        <!-- Location Hero Information Header -->
+                        <div class="current-location-hero" id="location-hero">
+                            <div class="loc-main">
+                                <h2 class="loc-name" id="loc-display-name">Tokyo, Japan</h2>
+                                <div class="loc-meta">
+                                    <span class="meta-tag" id="loc-coords"><i class="fa-solid fa-globe"></i> 35.6762° N, 139.6503° E</span>
+                                    <span class="meta-tag" id="loc-tz"><i class="fa-solid fa-clock"></i> Asia/Tokyo</span>
+                                    <span class="meta-tag" id="loc-elevation"><i class="fa-solid fa-mountain"></i> Elev: 40m</span>
+                                </div>
+                            </div>
+                            <div class="temp-main-display">
+                                <div class="temp-big" id="temp-big">24°<span class="unit">C</span></div>
+                                <div class="temp-condition">
+                                    <span class="condition-badge" id="condition-badge">Clear Sky</span>
+                                    <span class="feels-like" id="feels-like-display">Feels 25°C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Highs / Lows / Quick Metrics -->
+                        <div class="hero-quick-metrics">
+                            <div class="q-metric">
+                                <span class="q-label">DAY RANGE</span>
+                                <span class="q-val" id="day-range-val">18°C — 28°C</span>
+                            </div>
+                            <div class="q-metric">
+                                <span class="q-label">PRECIPITATION</span>
+                                <span class="q-val" id="precip-val">0.0 mm</span>
+                            </div>
+                            <div class="q-metric">
+                                <span class="q-label">DEW POINT</span>
+                                <span class="q-val" id="dew-point-val">14°C</span>
+                            </div>
+                            <div class="q-metric">
+                                <span class="q-label">PRESSURE TREND</span>
+                                <span class="q-val cyan-text" id="pressure-trend-val">1013 hPa ↑</span>
+                            </div>
+                        </div>
+
+                        <!-- Extended 5-Day Forecast Panel -->
+                        <div class="extended-forecast-panel">
+                            <div class="ef-header">
+                                <span class="ef-title"><i class="fa-solid fa-calendar-days amber-text"></i> EXTENDED 5-DAY FORECAST</span>
+                                <span class="ef-badge">HIGH PRECISION</span>
+                            </div>
+                            <div class="extended-forecast-grid" id="extended-forecast-grid">
+                                <!-- Dynamic 5-Day Forecast Cards Injected via JavaScript -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Favorites Quick-Launch Bar -->
-                <div class="favorites-bar" id="favoritesBar">
-                    <span class="font-mono text-xs uppercase tracking-wider" style="color: var(--brass);">★ Favorites:</span>
-                    <div id="favoritesList" class="flex items-center gap-2"></div>
-                </div>
-
-                <!-- Signature Sky Strip -->
-                <div>
-                    <div class="sky-strip" id="skyStrip">
-                        <div class="sky-now" id="skyNow" style="left: 50%;">
-                            <span class="sky-now-time" id="skyNowTime">12:00</span>
+                <!-- 3D Stage Column (Three.js Holographic Stage & Solar Timeline) -->
+                <div class="stage-3d-panel">
+                    <div class="glass-card stage-card">
+                        <div class="card-header-tag">
+                            <i class="fa-solid fa-cube"></i> THE 3D HOLOGRAPHIC STAGE
                         </div>
-                        <div class="sky-marker" id="skySunrise" style="display:none;"><span id="skySunriseLabel"></span></div>
-                        <div class="sky-marker" id="skySunset" style="display:none;"><span id="skySunsetLabel"></span></div>
-                    </div>
-                    <div class="sky-hours">
-                        <span>12a</span><span>3a</span><span>6a</span><span>9a</span><span>12p</span><span>3p</span><span>6p</span><span>9p</span><span>12a</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <aside class="dashboard-rail" aria-label="Data logs">
-            <div class="rail-heading">DATA LOGS</div>
-            <div class="rail-item"><span class="rail-dot live"></span><span>Atmos stream</span><time>LIVE</time></div>
-            <div class="rail-item"><span class="rail-dot"></span><span>Weather sync</span><time>NOW</time></div>
-            <div class="rail-item"><span class="rail-dot"></span><span>Air quality</span><time>08:42</time></div>
-            <div class="rail-heading rail-heading-spaced">EXPORT HISTORY</div>
-            <div class="rail-item"><span class="rail-file">▤</span><span>Telemetry report</span><time>PDF</time></div>
-            <div class="rail-item"><span class="rail-file">▤</span><span>Weekly outlook</span><time>CSV</time></div>
-        </aside>
-
-        <!-- HOME HERO SECTION -->
-        <section id="home" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2 lg:py-16">
-            <div class="space-y-7">
-                <div class="eyebrow">No. 01 — Live Reading</div>
-                <div class="space-y-5">
-                    <h1 class="font-display hero-head max-w-2xl text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
-                        Weather, read like an instrument — not guessed at.
-                    </h1>
-                    <p class="hero-copy max-w-xl text-lg leading-8">
-                        Search any city, village, state, country, postcode, or coordinate pair. Atmos pairs the
-                        live reading with air quality, field gauges, map telemetry, and famous places nearby.
-                    </p>
-                </div>
-
-                <!-- Home Search Form -->
-                <form id="searchFormHome" class="input-shell p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row">
-                        <label class="sr-only" for="cityName">Place name</label>
-                        <input type="text" name="cityName" id="cityName" placeholder="Try Jaipur, Kerala, Tokyo, or 28.61,77.20"
-                            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
-                        <button id="searchBtn" type="submit" class="btn-brass control-tall px-6">
-                            Read weather
-                        </button>
-                        <button id="locationBtn" type="button" class="btn-outline control-tall px-6">
-                            Use my location
-                        </button>
-                    </div>
-                    <div class="autocomplete-dropdown" id="cityAutocomplete" style="display:none;"></div>
-                </form>
-                <div class="recent-chip-row" id="recentChipsHome"></div>
-
-                <div class="stat-grid grid max-w-2xl grid-cols-3 gap-3 text-center">
-                    <div class="stat-tick p-4">
-                        <p class="num font-mono text-xl font-bold">24/7</p>
-                        <p class="label text-xs font-semibold uppercase tracking-wider">Live Telemetry</p>
-                    </div>
-                    <div class="stat-tick p-4">
-                        <p class="num font-mono text-xl font-bold">AQI & Field</p>
-                        <p class="label text-xs font-semibold uppercase tracking-wider">Gauges Included</p>
-                    </div>
-                    <div class="stat-tick p-4">
-                        <p class="num font-mono text-xl font-bold">Global</p>
-                        <p class="label text-xs font-semibold uppercase tracking-wider">Any Location</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Log Book Card -->
-            <section class="panel panel-brass overflow-hidden rounded-2xl">
-                <div class="p-6 sm:p-8" style="background: linear-gradient(160deg, rgba(201,154,75,0.14), rgba(111,201,214,0.08));">
-                    <div class="hologram-stage" aria-hidden="true">
-                        <span class="holo-label holo-label-top">LIVE ATMOSPHERE</span>
-                        <span class="holo-label holo-label-bottom">FIELD VECTOR / 24H</span>
-                        <div class="holo-orbit holo-orbit-one"></div>
-                        <div class="holo-orbit holo-orbit-two"></div>
-                        <div class="holo-globe">
-                            <span class="holo-meridian"></span>
-                            <span class="holo-parallel"></span>
-                            <span class="holo-core"></span>
+                        
+                        <!-- Canvas Container for 3D Holographic Globe -->
+                        <div class="three-canvas-container" id="canvas-container">
+                            <div class="stage-overlay-badge">
+                                <span class="badge-dot"></span> 3D ATMOSPHERIC SIMULATOR
+                            </div>
+                            <div class="stage-controls">
+                                <button class="stage-ctrl-btn" id="reset-cam" title="Reset View"><i class="fa-solid fa-arrows-to-dot"></i></button>
+                                <button class="stage-ctrl-btn" id="toggle-wireframe" title="Toggle Grid"><i class="fa-solid fa-border-all"></i></button>
+                            </div>
                         </div>
-                        <div class="holo-platform"></div>
-                    </div>
-                    <p class="eyebrow">Instrument Log</p>
-                    <h2 class="font-display mt-3 text-2xl" style="color: var(--text-hi);">What Atmos does differently</h2>
-                    <p class="mt-2 max-w-md text-sm leading-6" style="color: var(--text-lo);">
-                        Atmos transforms standard weather text into precision telemetry — combining real-time atmosphere metrics, particulate pollution, visual compass instruments, and nearby cultural landmarks.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 gap-3 p-5 sm:p-6">
-                    <div class="field-note p-5">
-                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--brass);">01 · Telemetry Gauges</p>
-                        <p class="mt-1 text-sm" style="color: var(--text-mid);">Live temperature, heat index, wind rose compass, barometer pressure trend, and lunar phase.</p>
-                    </div>
-                    <div class="field-note p-5">
-                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--cyan);">02 · Scientific AQI</p>
-                        <p class="mt-1 text-sm" style="color: var(--text-mid);">US EPA & DEFRA indices with exact PM2.5/PM10 concentration levels and health advisory tips.</p>
-                    </div>
-                    <div class="field-note p-5">
-                        <p class="font-mono text-xs uppercase tracking-widest" style="color: var(--rose);">03 · Visual Nearby Explorer</p>
-                        <p class="mt-1 text-sm" style="color: var(--text-mid);">Photographic attraction cards with Wikipedia imagery and Google Maps directions.</p>
-                    </div>
-                </div>
-            </section>
-        </section>
 
-        <!-- WEATHER & INSTRUMENTS SECTION -->
-        <section id="weather" class="slide-section grid items-start gap-10 py-12 lg:grid-cols-5">
-            <div class="lg:col-span-2 lg:sticky lg:top-28">
-                <div class="eyebrow">No. 02 — Atmospheric Conditions</div>
-                <h2 class="font-display mt-5 text-4xl leading-tight" style="color: var(--text-hi);">Current weather, in full.</h2>
-                <p class="mt-4 text-lg leading-8" style="color: var(--text-lo);">
-                    This panel resolves any place match: city, village, state, country,
-                    postcode, airport code, coordinates, or GPS location — featuring interactive solar, wind, and lunar gauges.
-                </p>
-            </div>
-            <div id="weatherDetails" class="grid grid-cols-1 gap-4 lg:col-span-3">
-                <div class="field-note p-8 text-center">
-                    <p class="font-display text-xl" style="color: var(--text-hi);">Search any place to begin</p>
-                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
-                        Use the search box above — live weather telemetry and field dials appear here.
-                    </p>
-                </div>
-            </div>
-        </section>
+                        <!-- Live Sun Position / Solar Arc Timeline -->
+                        <div class="solar-arc-panel">
+                            <div class="solar-header">
+                                <span class="solar-title"><i class="fa-solid fa-sun amber-text"></i> Live Solar Arc & Daylight Timeline</span>
+                                <span class="solar-countdown" id="solar-countdown">Calculating solar arc...</span>
+                            </div>
+                            <div class="solar-arc-visual">
+                                <svg class="solar-svg" viewBox="0 0 400 120">
+                                    <!-- Background arc -->
+                                    <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-bg" />
+                                    <!-- Daytime progress arc -->
+                                    <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-active" id="solar-active-path" />
+                                    <!-- Baseline -->
+                                    <line x1="20" y1="100" x2="380" y2="100" class="solar-baseline" />
+                                    <!-- Sun Indicator Marker -->
+                                    <g id="sun-marker" transform="translate(200, 30)">
+                                        <circle r="10" class="sun-glow" />
+                                        <circle r="6" class="sun-core" />
+                                    </g>
+                                </svg>
+                            </div>
+                            <div class="solar-times">
+                                <div class="solar-time-item">
+                                    <i class="fa-solid fa-sun-plant-wilt"></i>
+                                    <div>
+                                        <span class="lbl">SUNRISE</span>
+                                        <span class="val" id="sunrise-time">05:42 AM</span>
+                                    </div>
+                                </div>
+                                <div class="solar-time-item">
+                                    <i class="fa-solid fa-sun"></i>
+                                    <div>
+                                        <span class="lbl">SOLAR NOON</span>
+                                        <span class="val" id="solar-noon-time">12:15 PM</span>
+                                    </div>
+                                </div>
+                                <div class="solar-time-item">
+                                    <i class="fa-solid fa-mountain-sun"></i>
+                                    <div>
+                                        <span class="lbl">SUNSET</span>
+                                        <span class="val" id="sunset-time">06:48 PM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- AIR QUALITY SECTION -->
-        <section id="aqi" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2">
-            <div class="space-y-6">
-                <div class="eyebrow">No. 03 — Air Quality & Health</div>
-                <h2 class="font-display text-4xl leading-tight" style="color: var(--text-hi);">Is the air safe to breathe?</h2>
-                <p class="text-lg leading-8" style="color: var(--text-lo);">
-                    Check EPA and DEFRA air cleanliness indices along with micro-particle pollutant density and actionable outdoor safety advice.
-                </p>
-                <form id="searchFormAqi" class="input-shell p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row">
-                        <label class="sr-only" for="aqiCityName">AQI place name</label>
-                        <input type="text" name="aqiCityName" id="aqiCityName" placeholder="AQI search, e.g. Delhi or India"
-                            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
-                        <button id="aqiBtn" type="submit" class="btn-brass control-tall px-6">
-                            Check AQI
-                        </button>
                     </div>
-                    <div class="autocomplete-dropdown" id="aqiAutocomplete" style="display:none;"></div>
-                </form>
-                <div class="recent-chip-row" id="recentChipsAqi"></div>
-            </div>
-            <div id="aqiDetails" class="grid grid-cols-1 gap-4">
-                <div class="field-note p-8 text-center">
-                    <p class="font-display text-xl" style="color: var(--text-hi);">AQI telemetry appears here</p>
-                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
-                        Search a place to analyze PM2.5, PM10, CO, NO2, O3, SO2 concentrations with EPA color coding.
-                    </p>
                 </div>
+
             </div>
         </section>
 
-        <!-- PLACES SECTION -->
-        <section id="places" class="slide-section grid items-center gap-10 py-12 lg:grid-cols-2">
-            <div class="space-y-6">
-                <div class="eyebrow">No. 04 — Cultural Landmarks</div>
-                <h2 class="font-display text-4xl leading-tight" style="color: var(--text-hi);">Worth visiting nearby.</h2>
-                <p class="text-lg leading-8" style="color: var(--text-lo);">
-                    Discover attractions, monuments, heritage reserves, and landmarks near your search area with Wikipedia photography.
-                </p>
-                <form id="searchFormPlaces" class="input-shell p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row">
-                        <label class="sr-only" for="placeCityName">Famous places location</label>
-                        <input type="text" name="placeCityName" id="placeCityName" placeholder="Places search, e.g. Rajasthan or Paris"
-                            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                            class="field control-tall flex-1 rounded-xl border-0 px-5 text-base outline-none">
-                        <button id="placeBtn" type="submit" class="btn-outline control-tall px-6">
-                            Find places
-                        </button>
+        <!-- ==========================================
+             SECTION 2: PRECISION TELEMETRY & SCIENTIFIC AQI PANEL
+             ========================================== -->
+        <section id="telemetry-panel" class="telemetry-section">
+            <div class="section-container">
+                <div class="section-title-block">
+                    <span class="section-badge"><i class="fa-solid fa-gauge-high"></i> SECTION 02</span>
+                    <h2 class="section-heading">Precision Telemetry & Scientific AQI Panel</h2>
+                    <p class="section-subtext">Calibrated 8-Point Field Sensors & Environmental Air Quality Analytics</p>
+                </div>
+
+                <!-- 8-Point Field Gauges Grid -->
+                <div class="telemetry-grid">
+
+                    <!-- Gauge 1: Wind Rose Compass -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-compass cyan-text"></i> WIND ROSE COMPASS</span>
+                            <span class="g-badge" id="wind-card-dir">NE (45°)</span>
+                        </div>
+                        <div class="compass-visual-container">
+                            <div class="compass-rose">
+                                <span class="cardinal c-n">N</span>
+                                <span class="cardinal c-e">E</span>
+                                <span class="cardinal c-s">S</span>
+                                <span class="cardinal c-w">W</span>
+                                <div class="compass-dial-ring"></div>
+                                <div class="compass-pointer" id="compass-needle">
+                                    <div class="pointer-head"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">WIND SPEED</span>
+                                <span class="val" id="wind-speed">14.4 km/h</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">GUST VELOCITY</span>
+                                <span class="val" id="wind-gust">22.1 km/h</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="autocomplete-dropdown" id="placeAutocomplete" style="display:none;"></div>
-                </form>
-                <div class="recent-chip-row" id="recentChipsPlaces"></div>
+
+                    <!-- Gauge 2: Barometer Pressure Dial -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-gauge amber-text"></i> BAROMETER & PRESSURE</span>
+                            <span class="g-badge" id="baro-trend-tag">STABLE</span>
+                        </div>
+                        <div class="radial-gauge-container">
+                            <svg class="radial-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="48" class="radial-bg" />
+                                <circle cx="60" cy="60" r="48" class="radial-bar amber-bar" id="baro-arc-bar" stroke-dasharray="301" stroke-dashoffset="90" />
+                            </svg>
+                            <div class="radial-center-content">
+                                <span class="radial-value" id="baro-val">1013</span>
+                                <span class="radial-unit">hPa</span>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">SEA LEVEL</span>
+                                <span class="val" id="sea-press">1013 hPa</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">ATMOSPHERE</span>
+                                <span class="val" id="atm-status">Standard</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 3: Relative Humidity & Dew Point -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-droplet cyan-text"></i> HUMIDITY & DEW POINT</span>
+                            <span class="g-badge" id="humidity-status">COMFORT</span>
+                        </div>
+                        <div class="radial-gauge-container">
+                            <svg class="radial-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="48" class="radial-bg" />
+                                <circle cx="60" cy="60" r="48" class="radial-bar cyan-bar" id="humidity-arc-bar" stroke-dasharray="301" stroke-dashoffset="120" />
+                            </svg>
+                            <div class="radial-center-content">
+                                <span class="radial-value" id="humidity-val">62</span>
+                                <span class="radial-unit">%</span>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">DEW POINT</span>
+                                <span class="val" id="dew-point-card">14.2°C</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">VAPOR PRESS</span>
+                                <span class="val" id="vapor-press">1.82 kPa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 4: Lunar Phase Visualizer -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-moon amber-text"></i> LUNAR PHASE CYCLE</span>
+                            <span class="g-badge" id="lunar-illum-badge">78% ILLUM</span>
+                        </div>
+                        <div class="lunar-visual-container">
+                            <div class="moon-globe" id="moon-disc">
+                                <div class="moon-craters"></div>
+                                <div class="moon-shadow-overlay" id="moon-shadow"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">CURRENT PHASE</span>
+                                <span class="val" id="lunar-phase-name">Waxing Gibbous</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">LUNAR AGE</span>
+                                <span class="val" id="lunar-age">10.4 Days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 5: UV Index & Irradiance -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-sun amber-text"></i> UV INDEX RADIANCE</span>
+                            <span class="g-badge" id="uv-badge">MODERATE</span>
+                        </div>
+                        <div class="uv-bar-container">
+                            <div class="uv-number-big" id="uv-num-val">4.2</div>
+                            <div class="uv-track">
+                                <div class="uv-fill" id="uv-fill-bar" style="width: 35%;"></div>
+                            </div>
+                            <span class="uv-desc" id="uv-advice">Protection Required Near Noon</span>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">SOLAR IRRADIANCE</span>
+                                <span class="val" id="solar-irradiance">420 W/m²</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">MAX TODAY</span>
+                                <span class="val" id="uv-max-today">6.8 UV</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 6: Air Optics & Visibility -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-eye cyan-text"></i> AIR OPTICS & VISIBILITY</span>
+                            <span class="g-badge" id="vis-status">CLEAR</span>
+                        </div>
+                        <div class="optics-container">
+                            <div class="optics-val-big" id="vis-val">10.0 <span class="optics-unit">km</span></div>
+                            <div class="optics-meter">
+                                <div class="optics-fill" id="vis-fill-bar" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">ATMOS HORIZON</span>
+                                <span class="val" id="horizon-dist">10,000 m</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">HAZE INDEX</span>
+                                <span class="val" id="haze-index">Low</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 7: Cloud Cover & Ceiling Height -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-cloud cyan-text"></i> CLOUD COVER & CEILING</span>
+                            <span class="g-badge" id="cloud-badge">PARTLY CLOUDY</span>
+                        </div>
+                        <div class="cloud-visual-container">
+                            <div class="cloud-percent-display" id="cloud-pct-val">28%</div>
+                            <div class="cloud-bars">
+                                <div class="c-layer-bar" style="height: 40%;" title="Low Cloud Layer"></div>
+                                <div class="c-layer-bar" style="height: 70%;" title="Mid Cloud Layer"></div>
+                                <div class="c-layer-bar" style="height: 25%;" title="High Cirrus Layer"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">CLOUD BASE</span>
+                                <span class="val" id="cloud-base-val">1,200 m</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">CEILING</span>
+                                <span class="val" id="cloud-ceiling-val">3,500 m</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 8: Thermal Comfort / Heat Index -->
+                    <div class="glass-card tilt-card gauge-card">
+                        <div class="gauge-header">
+                            <span class="g-title"><i class="fa-solid fa-temperature-three-quarters amber-text"></i> THERMAL COMFORT INDEX</span>
+                            <span class="g-badge" id="thermal-badge">OPTIMAL</span>
+                        </div>
+                        <div class="thermal-container">
+                            <div class="thermal-big" id="heat-index-val">25.0°C</div>
+                            <div class="thermal-status-text" id="heat-index-desc">No Risk of Heat Stress</div>
+                        </div>
+                        <div class="gauge-footer-metrics">
+                            <div class="gf-item">
+                                <span class="lbl">WIND CHILL</span>
+                                <span class="val" id="wind-chill-val">23.8°C</span>
+                            </div>
+                            <div class="gf-item">
+                                <span class="lbl">HUMIDEX</span>
+                                <span class="val" id="humidex-val">26.5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Scientific AQI Command Center -->
+                <div class="aqi-command-center glass-card">
+                    <div class="aqi-header">
+                        <div class="aqi-title-group">
+                            <i class="fa-solid fa-lungs aqi-icon"></i>
+                            <div>
+                                <h3 class="aqi-main-title">Scientific Air Quality (AQI) Command Center</h3>
+                                <p class="aqi-subtitle">Real-time Particulate Matter (PM2.5, PM10) & Atmospheric Trace Gases</p>
+                            </div>
+                        </div>
+                        <div class="aqi-score-badge" id="aqi-score-badge">
+                            <span class="aqi-num" id="aqi-score-num">42</span>
+                            <span class="aqi-label" id="aqi-score-label">GOOD</span>
+                        </div>
+                    </div>
+
+                    <!-- AQI Progress Track -->
+                    <div class="aqi-spectrum-track">
+                        <div class="aqi-pointer" id="aqi-pointer" style="left: 14%;"></div>
+                        <div class="aqi-segment seg-good" title="0-50 Good"></div>
+                        <div class="aqi-segment seg-moderate" title="51-100 Moderate"></div>
+                        <div class="aqi-segment seg-unhealthy-sensitive" title="101-150 Unhealthy for Sensitive Groups"></div>
+                        <div class="aqi-segment seg-unhealthy" title="151-200 Unhealthy"></div>
+                        <div class="aqi-segment seg-very-unhealthy" title="201-300 Very Unhealthy"></div>
+                        <div class="aqi-segment seg-hazardous" title="301-500 Hazardous"></div>
+                    </div>
+
+                    <!-- Color-Coded Particulate Concentration Chips -->
+                    <div class="particulate-chips-grid">
+                        
+                        <!-- Chip: PM2.5 -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-pm25">
+                            <div class="chip-top">
+                                <span class="chip-name">PM 2.5</span>
+                                <span class="chip-status-tag" id="status-pm25">GOOD</span>
+                            </div>
+                            <div class="chip-value" id="val-pm25">10.2 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-pm25" style="width: 20%;"></div></div>
+                        </div>
+
+                        <!-- Chip: PM10 -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-pm10">
+                            <div class="chip-top">
+                                <span class="chip-name">PM 10</span>
+                                <span class="chip-status-tag" id="status-pm10">GOOD</span>
+                            </div>
+                            <div class="chip-value" id="val-pm10">24.5 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-pm10" style="width: 25%;"></div></div>
+                        </div>
+
+                        <!-- Chip: CO -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-co">
+                            <div class="chip-top">
+                                <span class="chip-name">CO (Carbon Monoxide)</span>
+                                <span class="chip-status-tag" id="status-co">EXCELLENT</span>
+                            </div>
+                            <div class="chip-value" id="val-co">210 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-co" style="width: 15%;"></div></div>
+                        </div>
+
+                        <!-- Chip: NO2 -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-no2">
+                            <div class="chip-top">
+                                <span class="chip-name">NO2 (Nitrogen Dioxide)</span>
+                                <span class="chip-status-tag" id="status-no2">GOOD</span>
+                            </div>
+                            <div class="chip-value" id="val-no2">14.8 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-no2" style="width: 18%;"></div></div>
+                        </div>
+
+                        <!-- Chip: O3 -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-o3">
+                            <div class="chip-top">
+                                <span class="chip-name">O3 (Ozone)</span>
+                                <span class="chip-status-tag" id="status-o3">MODERATE</span>
+                            </div>
+                            <div class="chip-value" id="val-o3">58.0 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-o3" style="width: 35%;"></div></div>
+                        </div>
+
+                        <!-- Chip: SO2 -->
+                        <div class="particulate-chip glass-card tilt-card" id="chip-so2">
+                            <div class="chip-top">
+                                <span class="chip-name">SO2 (Sulphur Dioxide)</span>
+                                <span class="chip-status-tag" id="status-so2">LOW</span>
+                            </div>
+                            <div class="chip-value" id="val-so2">3.4 <span class="chip-unit">µg/m³</span></div>
+                            <div class="chip-bar"><div class="chip-fill" id="fill-so2" style="width: 10%;"></div></div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
-            <div id="placeDetails" class="grid grid-cols-1 gap-4">
-                <div class="field-note p-8 text-center">
-                    <p class="font-display text-xl" style="color: var(--text-hi);">Places appear here</p>
-                    <p class="mt-2 text-sm leading-6" style="color: var(--text-lo);">
-                        Search any location to see curated attraction photo cards and Wikipedia guides.
-                    </p>
+        </section>
+
+        <!-- ==========================================
+             SECTION 3: INTERACTIVE TOPOGRAPHIC MAP (GIS)
+             ========================================== -->
+        <section id="gis-section" class="gis-section">
+            <div class="section-container">
+                <div class="section-title-block">
+                    <span class="section-badge"><i class="fa-solid fa-map-location-dot"></i> SECTION 03</span>
+                    <h2 class="section-heading">Interactive Topographic Map (GIS)</h2>
+                    <p class="section-subtext">Spatial Telemetry, Global Grid Projection & Interactive Coordinates</p>
+                </div>
+
+                <!-- Full-Width GIS Map Container -->
+                <div class="gis-map-wrapper glass-card">
+                    <!-- Leaflet Container -->
+                    <div id="gis-map" class="gis-map-canvas"></div>
+
+                    <!-- Floating Spatial Coordinate Badges -->
+                    <div class="spatial-badges-overlay">
+                        <div class="spatial-badge">
+                            <span class="s-label"><i class="fa-solid fa-arrows-up-down"></i> LATITUDE</span>
+                            <span class="s-val" id="gis-lat">35.6762° N</span>
+                        </div>
+                        <div class="spatial-badge">
+                            <span class="s-label"><i class="fa-solid fa-arrows-left-right"></i> LONGITUDE</span>
+                            <span class="s-val" id="gis-lng">139.6503° E</span>
+                        </div>
+                        <div class="spatial-badge">
+                            <span class="s-label"><i class="fa-solid fa-mountain"></i> ELEVATION</span>
+                            <span class="s-val" id="gis-alt">40 m MSL</span>
+                        </div>
+                        <div class="spatial-badge">
+                            <span class="s-label"><i class="fa-solid fa-border-all"></i> MGRS GRID</span>
+                            <span class="s-val" id="gis-mgrs">54S UE 839 614</span>
+                        </div>
+                    </div>
+
+                    <!-- Map Interaction Hint -->
+                    <div class="map-hint-badge">
+                        <i class="fa-solid fa-hand-pointer"></i> Click anywhere on map to query telemetry
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- MAP SECTION -->
-        <section id="mapSection" class="slide-section py-12">
-            <div class="space-y-4 mb-6">
-                <div class="eyebrow">No. 05 — Interactive Telemetry Map</div>
-                <h2 class="font-display text-3xl sm:text-4xl" style="color: var(--text-hi);">Geospatial Position & Map</h2>
-                <p class="text-base sm:text-lg max-w-2xl" style="color: var(--text-lo);">
-                    Inspect exact latitude, longitude, region coordinates, and spatial topography on an interactive instrument map.
-                </p>
-            </div>
-            <div id="weatherMap" class="shadow-2xl"></div>
-        </section>
+        <!-- ==========================================
+             SECTION 4: VISITABLE PLACES & CULTURAL EXPLORER
+             ========================================== -->
+        <section id="cultural-explorer" class="explorer-section">
+            <div class="section-container">
+                <div class="section-title-block">
+                    <span class="section-badge"><i class="fa-solid fa-monument"></i> SECTION 04</span>
+                    <h2 class="section-heading">Visitable Places & Cultural Explorer</h2>
+                    <p class="section-subtext">Geotargeted Cultural Landmarks & Nearby Points of Interest (Wikipedia REST API)</p>
+                </div>
 
-        <!-- COVERAGE SECTION -->
-        <section id="coverage" class="slide-section py-12">
-            <div class="isobar mb-10"></div>
-            <div class="grid gap-8 lg:grid-cols-2 lg:items-end">
-                <div>
-                    <div class="eyebrow">No. 06 — Global Coverage</div>
-                    <h2 class="font-display mt-5 text-4xl leading-tight" style="color: var(--text-hi);">Built for any kind of place.</h2>
-                    <p class="mt-4 text-lg leading-8" style="color: var(--text-lo);">
-                        Atmos accepts cities, villages, state territories, island nations, postcodes, airport IATA codes, and latitude-longitude coordinate pairs.
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="coverage-card p-5">
-                        <p class="font-display text-2xl" style="color: var(--brass-hi);">Cities</p>
-                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Mumbai, London, Tokyo</p>
-                    </div>
-                    <div class="coverage-card p-5">
-                        <p class="font-display text-2xl" style="color: var(--cyan);">Villages</p>
-                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Search exact settlements</p>
-                    </div>
-                    <div class="coverage-card p-5">
-                        <p class="font-display text-2xl" style="color: var(--rose);">States</p>
-                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">Kerala, Rajasthan, California</p>
-                    </div>
-                    <div class="coverage-card p-5">
-                        <p class="font-display text-2xl" style="color: var(--text-hi);">Countries</p>
-                        <p class="mt-2 text-sm font-semibold" style="color: var(--text-lo);">India, Japan, Canada</p>
+                <!-- Bento-Box Grid Container -->
+                <div class="bento-grid" id="bento-places-grid">
+                    <!-- Dynamic Bento Cards Injected Here via JavaScript -->
+                    <div class="bento-loading-state glass-card">
+                        <i class="fa-solid fa-atom fa-spin loading-spin"></i>
+                        <p>Querying Wikipedia Geosearch Engine for nearby landmarks...</p>
                     </div>
                 </div>
+
             </div>
         </section>
 
-        <!-- FOOTER -->
-        <footer class="site-footer mt-6 pt-8 text-sm">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p>Atmos — weather, air quality, field gauges, and cultural landmarks, read as one instrument panel.</p>
-                <p class="font-mono text-xs" style="color: var(--text-lo);">Data: WeatherAPI · Wikidata · Wikipedia · OpenStreetMap</p>
-            </div>
-        </footer>
     </main>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-card p-6 sm:p-8">
-            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--line-soft);">
-                <h3 class="font-display text-2xl" style="color: var(--text-hi);">Atmos Settings</h3>
-                <button type="button" id="closeSettingsModal" class="text-xl font-bold hover:text-white" style="color: var(--text-lo);">&times;</button>
+    <!-- Sleek Professional Footer -->
+    <footer class="app-footer">
+        <div class="footer-container glass-card">
+            <div class="footer-brand">
+                <i class="fa-solid fa-compass-drafting f-logo"></i>
+                <span class="f-name">ATMOS — FIELD WEATHER INSTRUMENT</span>
             </div>
-            <div class="space-y-6 pt-5">
-                <div>
-                    <label class="block font-mono text-xs uppercase tracking-wider mb-2" style="color: var(--brass);">Custom WeatherAPI Key</label>
-                    <input type="text" id="apiKeyInput" placeholder="Paste your WeatherAPI key here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500 font-mono">
-                    <p class="text-xs mt-1" style="color: var(--text-lo);">Optional. Used when Vercel serverless proxy is unavailable or when hosting statically.</p>
-                </div>
-                <div>
-                    <label class="block font-mono text-xs uppercase tracking-wider mb-2" style="color: var(--brass);">Data Mode Preference</label>
-                    <select id="dataModeSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500">
-                        <option value="auto">Auto (Proxy -> API Key -> Offline Demo)</option>
-                        <option value="proxy">Force Proxy (/api/weather)</option>
-                        <option value="direct">Force Direct API Key</option>
-                        <option value="demo">Force Demo Mode (Offline Simulated)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-mono text-xs uppercase tracking-wider mb-2" style="color: var(--brass);">Recent Search History</label>
-                    <button type="button" id="clearHistoryBtn" class="btn-outline px-4 py-2 text-xs">Clear Local Search Cache</button>
-                </div>
-            </div>
-            <div class="mt-8 flex justify-end gap-3 pt-4 border-t" style="border-color: var(--line-soft);">
-                <button type="button" id="saveSettingsBtn" class="btn-brass px-6 py-2 text-sm">Save Preferences</button>
+            <p class="footer-credit">
+                Designed & Developed by <strong>Aniket Yadav | BBD</strong>
+            </p>
+            <div class="footer-social-links">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub Repository">
+                    <i class="fa-brands fa-github"></i>
+                    <span>GitHub</span>
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn Profile">
+                    <i class="fa-brands fa-linkedin"></i>
+                    <span>LinkedIn</span>
+                </a>
             </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- COMPARE LOCATIONS MODAL -->
-    <div id="compareModal" class="modal-overlay">
-        <div class="modal-card p-6 sm:p-8 max-w-3xl">
-            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--line-soft);">
-                <h3 class="font-display text-2xl" style="color: var(--text-hi);">Compare Telemetry Side-by-Side</h3>
-                <button type="button" id="closeCompareModal" class="text-xl font-bold hover:text-white" style="color: var(--text-lo);">&times;</button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5">
-                <div>
-                    <label class="block font-mono text-xs uppercase tracking-wider mb-2" style="color: var(--brass);">Location 1</label>
-                    <input type="text" id="compareLoc1Input" placeholder="e.g. London" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500 font-mono mb-4">
-                    <div id="compareLoc1Card" class="field-note p-4 text-center">
-                        <p class="text-xs" style="color: var(--text-lo);">Location 1 telemetry preview...</p>
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-mono text-xs uppercase tracking-wider mb-2" style="color: var(--cyan);">Location 2</label>
-                    <input type="text" id="compareLoc2Input" placeholder="e.g. Tokyo" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono mb-4">
-                    <div id="compareLoc2Card" class="field-note p-4 text-center">
-                        <p class="text-xs" style="color: var(--text-lo);">Location 2 telemetry preview...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end gap-3">
-                <button type="button" id="runCompareBtn" class="btn-brass px-6 py-2.5 text-sm">Run Comparison</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ALERT FULL DETAILS MODAL -->
-    <div id="alertModal" class="modal-overlay">
-        <div class="modal-card p-6 sm:p-8">
-            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--line-soft);">
-                <h3 class="font-display text-2xl text-red-400">⚠ Weather Warning Detail</h3>
-                <button type="button" id="closeAlertModal" class="text-xl font-bold hover:text-white" style="color: var(--text-lo);">&times;</button>
-            </div>
-            <div id="alertModalBody" class="pt-5 space-y-4 text-sm leading-relaxed" style="color: var(--text-mid);">
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="toast">
-        <span id="toastIcon">✨</span>
-        <span id="toastMsg">Action completed successfully.</span>
-    </div>
-
-    <!-- Client Script -->
-    <script src="script.js"></script>
 </body>
-
 </html>

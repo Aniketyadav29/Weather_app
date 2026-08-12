@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos — Field Weather Instrument | 3D Precision Telemetry</title>
-    <meta name="description" content="Recruiter-ready 3D animated weather telemetry instrument panel with scientific air quality metrics, interactive GIS topographic map, solar timeline, and cultural explorer.">
+    <meta name="description"
+        content="Recruiter-ready 3D animated weather telemetry instrument panel with scientific air quality metrics, interactive GIS topographic map, solar timeline, and cultural explorer.">
     <meta name="theme-color" content="#070d19">
 
     <!-- Favicon -->
@@ -13,10 +15,13 @@
     <!-- Google Fonts: Fraunces (Headlines), JetBrains Mono (Telemetry), Inter (Body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap"
+        rel="stylesheet">
 
     <!-- FontAwesome Icons CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Leaflet GIS Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -29,6 +34,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="script.js" defer></script>
 </head>
+
 <body>
 
     <!-- Background Ambient Glow, Volumetric Clouds & Starfield Canvas -->
@@ -49,7 +55,7 @@
                 <i class="fa-solid fa-cloud-sun-rain brand-icon"></i>
                 <span class="brand-title">AETHER WEATHER</span>
             </div>
-            
+
             <nav class="nav-links">
                 <a href="#hero-stage" class="nav-link active">HOME</a>
                 <a href="#extended-forecast" class="nav-link">FORECAST</a>
@@ -61,7 +67,8 @@
             <div class="nav-search-wrapper">
                 <div class="nav-search-box">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="city-search" placeholder="Search city or coordinates..." autocomplete="off" />
+                    <input type="text" id="city-search" placeholder="Search city or coordinates..."
+                        autocomplete="off" />
                     <button type="button" id="geo-btn" class="btn-geo" title="Use Current GPS Location">
                         <i class="fa-solid fa-location-crosshairs"></i>
                     </button>
@@ -77,7 +84,8 @@
         <main class="main-content">
             <!-- Quick Presets Bar -->
             <div class="preset-bar-container">
-                <span class="preset-label"><i class="fa-solid fa-bolt-lightning amber-text"></i> POPULAR LOCATIONS:</span>
+                <span class="preset-label"><i class="fa-solid fa-bolt-lightning amber-text"></i> POPULAR
+                    LOCATIONS:</span>
                 <div class="preset-pills">
                     <button class="preset-chip" data-city="San Francisco">San Francisco</button>
                     <button class="preset-chip" data-city="Tokyo">Tokyo</button>
@@ -96,7 +104,7 @@
                  CINEMATIC 3D GLASSMORPHISM DASHBOARD PANEL
                  ========================================== -->
             <section id="hero-stage" class="floating-dashboard-panel glass-card">
-                
+
                 <!-- Dashboard Card Top Header -->
                 <div class="dashboard-card-header">
                     <div class="location-title-block">
@@ -104,7 +112,8 @@
                         <p class="dash-time-stamp" id="dash-date-time">2:30 PM PDT, Tuesday, Oct 26</p>
                     </div>
                     <div class="dash-header-actions">
-                        <span class="meta-tag" id="loc-coords"><i class="fa-solid fa-globe"></i> 37.7749° N, 122.4194° W</span>
+                        <span class="meta-tag" id="loc-coords"><i class="fa-solid fa-globe"></i> 37.7749° N, 122.4194°
+                            W</span>
                         <button class="dash-settings-btn" id="dash-settings-trigger" title="Dashboard Settings">
                             <i class="fa-solid fa-gear"></i>
                         </button>
@@ -113,7 +122,7 @@
 
                 <!-- Main Current Weather Display Row -->
                 <div class="dash-current-weather-row">
-                    
+
                     <!-- Left: Large Glowing Temperature Readout -->
                     <div class="dash-temp-block">
                         <div class="dash-temp-value" id="temp-big">24°<span class="unit">C</span></div>
@@ -210,11 +219,12 @@
                  ========================================== -->
             <section id="telemetry-panel" class="telemetry-section">
                 <div class="section-container">
-                    
+
                     <!-- Live Sun Position / Solar Arc Timeline Panel -->
                     <div class="solar-arc-panel glass-card">
                         <div class="solar-header">
-                            <span class="solar-title"><i class="fa-solid fa-sun amber-text"></i> Live Solar Arc & Daylight Timeline</span>
+                            <span class="solar-title"><i class="fa-solid fa-sun amber-text"></i> Live Solar Arc &
+                                Daylight Timeline</span>
                             <span class="solar-countdown" id="solar-countdown">Calculating solar arc...</span>
                         </div>
                         <div class="solar-arc-visual">
@@ -222,7 +232,8 @@
                                 <!-- Background arc -->
                                 <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-bg" />
                                 <!-- Daytime progress arc -->
-                                <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-active" id="solar-active-path" />
+                                <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-active"
+                                    id="solar-active-path" />
                                 <!-- Baseline -->
                                 <line x1="20" y1="100" x2="380" y2="100" class="solar-baseline" />
                                 <!-- Sun Indicator Marker -->
@@ -256,412 +267,442 @@
                             </div>
                         </div>
                     </div>
-                <div class="section-title-block">
-                    <span class="section-badge"><i class="fa-solid fa-gauge-high"></i> SECTION 02</span>
-                    <h2 class="section-heading">Precision Telemetry & Scientific AQI Panel</h2>
-                    <p class="section-subtext">Calibrated 8-Point Field Sensors & Environmental Air Quality Analytics</p>
-                </div>
+                    <div class="section-title-block">
+                        <span class="section-badge"><i class="fa-solid fa-gauge-high"></i> SECTION 02</span>
+                        <h2 class="section-heading">Precision Telemetry & Scientific AQI Panel</h2>
+                        <p class="section-subtext">Calibrated 8-Point Field Sensors & Environmental Air Quality
+                            Analytics</p>
+                    </div>
 
-                <!-- 8-Point Field Gauges Grid -->
-                <div class="telemetry-grid">
+                    <!-- 8-Point Field Gauges Grid -->
+                    <div class="telemetry-grid">
 
-                    <!-- Gauge 1: Wind Rose Compass -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-compass cyan-text"></i> WIND ROSE COMPASS</span>
-                            <span class="g-badge" id="wind-card-dir">NE (45°)</span>
-                        </div>
-                        <div class="compass-visual-container">
-                            <div class="compass-rose">
-                                <span class="cardinal c-n">N</span>
-                                <span class="cardinal c-e">E</span>
-                                <span class="cardinal c-s">S</span>
-                                <span class="cardinal c-w">W</span>
-                                <div class="compass-dial-ring"></div>
-                                <div class="compass-pointer" id="compass-needle">
-                                    <div class="pointer-head"></div>
+                        <!-- Gauge 1: Wind Rose Compass -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-compass cyan-text"></i> WIND ROSE
+                                    COMPASS</span>
+                                <span class="g-badge" id="wind-card-dir">NE (45°)</span>
+                            </div>
+                            <div class="compass-visual-container">
+                                <div class="compass-rose">
+                                    <span class="cardinal c-n">N</span>
+                                    <span class="cardinal c-e">E</span>
+                                    <span class="cardinal c-s">S</span>
+                                    <span class="cardinal c-w">W</span>
+                                    <div class="compass-dial-ring"></div>
+                                    <div class="compass-pointer" id="compass-needle">
+                                        <div class="pointer-head"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">WIND SPEED</span>
+                                    <span class="val" id="wind-speed">14.4 km/h</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">GUST VELOCITY</span>
+                                    <span class="val" id="wind-gust">22.1 km/h</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">WIND SPEED</span>
-                                <span class="val" id="wind-speed">14.4 km/h</span>
+
+                        <!-- Gauge 2: Barometer Pressure Dial -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-gauge amber-text"></i> BAROMETER &
+                                    PRESSURE</span>
+                                <span class="g-badge" id="baro-trend-tag">STABLE</span>
                             </div>
-                            <div class="gf-item">
-                                <span class="lbl">GUST VELOCITY</span>
-                                <span class="val" id="wind-gust">22.1 km/h</span>
+                            <div class="radial-gauge-container">
+                                <svg class="radial-svg" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="48" class="radial-bg" />
+                                    <circle cx="60" cy="60" r="48" class="radial-bar amber-bar" id="baro-arc-bar"
+                                        stroke-dasharray="301" stroke-dashoffset="90" />
+                                </svg>
+                                <div class="radial-center-content">
+                                    <span class="radial-value" id="baro-val">1013</span>
+                                    <span class="radial-unit">hPa</span>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">SEA LEVEL</span>
+                                    <span class="val" id="sea-press">1013 hPa</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">ATMOSPHERE</span>
+                                    <span class="val" id="atm-status">Standard</span>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Gauge 3: Relative Humidity & Dew Point -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-droplet cyan-text"></i> HUMIDITY & DEW
+                                    POINT</span>
+                                <span class="g-badge" id="humidity-status">COMFORT</span>
+                            </div>
+                            <div class="radial-gauge-container">
+                                <svg class="radial-svg" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="48" class="radial-bg" />
+                                    <circle cx="60" cy="60" r="48" class="radial-bar cyan-bar" id="humidity-arc-bar"
+                                        stroke-dasharray="301" stroke-dashoffset="120" />
+                                </svg>
+                                <div class="radial-center-content">
+                                    <span class="radial-value" id="humidity-val">62</span>
+                                    <span class="radial-unit">%</span>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">DEW POINT</span>
+                                    <span class="val" id="dew-point-card">14.2°C</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">VAPOR PRESS</span>
+                                    <span class="val" id="vapor-press">1.82 kPa</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gauge 4: Lunar Phase Visualizer -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-moon amber-text"></i> LUNAR PHASE
+                                    CYCLE</span>
+                                <span class="g-badge" id="lunar-illum-badge">78% ILLUM</span>
+                            </div>
+                            <div class="lunar-visual-container">
+                                <div class="moon-globe" id="moon-disc">
+                                    <div class="moon-craters"></div>
+                                    <div class="moon-shadow-overlay" id="moon-shadow"></div>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">CURRENT PHASE</span>
+                                    <span class="val" id="lunar-phase-name">Waxing Gibbous</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">LUNAR AGE</span>
+                                    <span class="val" id="lunar-age">10.4 Days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gauge 5: UV Index & Irradiance -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-sun amber-text"></i> UV INDEX
+                                    RADIANCE</span>
+                                <span class="g-badge" id="uv-badge">MODERATE</span>
+                            </div>
+                            <div class="uv-bar-container">
+                                <div class="uv-number-big" id="uv-num-val">4.2</div>
+                                <div class="uv-track">
+                                    <div class="uv-fill" id="uv-fill-bar" style="width: 35%;"></div>
+                                </div>
+                                <span class="uv-desc" id="uv-advice">Protection Required Near Noon</span>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">SOLAR IRRADIANCE</span>
+                                    <span class="val" id="solar-irradiance">420 W/m²</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">MAX TODAY</span>
+                                    <span class="val" id="uv-max-today">6.8 UV</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gauge 6: Air Optics & Visibility -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-eye cyan-text"></i> AIR OPTICS &
+                                    VISIBILITY</span>
+                                <span class="g-badge" id="vis-status">CLEAR</span>
+                            </div>
+                            <div class="optics-container">
+                                <div class="optics-val-big" id="vis-val">10.0 <span class="optics-unit">km</span></div>
+                                <div class="optics-meter">
+                                    <div class="optics-fill" id="vis-fill-bar" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">ATMOS HORIZON</span>
+                                    <span class="val" id="horizon-dist">10,000 m</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">HAZE INDEX</span>
+                                    <span class="val" id="haze-index">Low</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gauge 7: Cloud Cover & Ceiling Height -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-cloud cyan-text"></i> CLOUD COVER &
+                                    CEILING</span>
+                                <span class="g-badge" id="cloud-badge">PARTLY CLOUDY</span>
+                            </div>
+                            <div class="cloud-visual-container">
+                                <div class="cloud-percent-display" id="cloud-pct-val">28%</div>
+                                <div class="cloud-bars">
+                                    <div class="c-layer-bar" style="height: 40%;" title="Low Cloud Layer"></div>
+                                    <div class="c-layer-bar" style="height: 70%;" title="Mid Cloud Layer"></div>
+                                    <div class="c-layer-bar" style="height: 25%;" title="High Cirrus Layer"></div>
+                                </div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">CLOUD BASE</span>
+                                    <span class="val" id="cloud-base-val">1,200 m</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">CEILING</span>
+                                    <span class="val" id="cloud-ceiling-val">3,500 m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gauge 8: Thermal Comfort / Heat Index -->
+                        <div class="glass-card tilt-card gauge-card">
+                            <div class="gauge-header">
+                                <span class="g-title"><i class="fa-solid fa-temperature-three-quarters amber-text"></i>
+                                    THERMAL COMFORT INDEX</span>
+                                <span class="g-badge" id="thermal-badge">OPTIMAL</span>
+                            </div>
+                            <div class="thermal-container">
+                                <div class="thermal-big" id="heat-index-val">25.0°C</div>
+                                <div class="thermal-status-text" id="heat-index-desc">No Risk of Heat Stress</div>
+                            </div>
+                            <div class="gauge-footer-metrics">
+                                <div class="gf-item">
+                                    <span class="lbl">WIND CHILL</span>
+                                    <span class="val" id="wind-chill-val">23.8°C</span>
+                                </div>
+                                <div class="gf-item">
+                                    <span class="lbl">HUMIDEX</span>
+                                    <span class="val" id="humidex-val">26.5</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <!-- Gauge 2: Barometer Pressure Dial -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-gauge amber-text"></i> BAROMETER & PRESSURE</span>
-                            <span class="g-badge" id="baro-trend-tag">STABLE</span>
-                        </div>
-                        <div class="radial-gauge-container">
-                            <svg class="radial-svg" viewBox="0 0 120 120">
-                                <circle cx="60" cy="60" r="48" class="radial-bg" />
-                                <circle cx="60" cy="60" r="48" class="radial-bar amber-bar" id="baro-arc-bar" stroke-dasharray="301" stroke-dashoffset="90" />
-                            </svg>
-                            <div class="radial-center-content">
-                                <span class="radial-value" id="baro-val">1013</span>
-                                <span class="radial-unit">hPa</span>
+                    <!-- Scientific AQI Command Center -->
+                    <div class="aqi-command-center glass-card">
+                        <div class="aqi-header">
+                            <div class="aqi-title-group">
+                                <i class="fa-solid fa-lungs aqi-icon"></i>
+                                <div>
+                                    <h3 class="aqi-main-title">Scientific Air Quality (AQI) Command Center</h3>
+                                    <p class="aqi-subtitle">Real-time Particulate Matter (PM2.5, PM10) & Atmospheric
+                                        Trace Gases</p>
+                                </div>
+                            </div>
+                            <div class="aqi-score-badge" id="aqi-score-badge">
+                                <span class="aqi-num" id="aqi-score-num">42</span>
+                                <span class="aqi-label" id="aqi-score-label">GOOD</span>
                             </div>
                         </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">SEA LEVEL</span>
-                                <span class="val" id="sea-press">1013 hPa</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">ATMOSPHERE</span>
-                                <span class="val" id="atm-status">Standard</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Gauge 3: Relative Humidity & Dew Point -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-droplet cyan-text"></i> HUMIDITY & DEW POINT</span>
-                            <span class="g-badge" id="humidity-status">COMFORT</span>
+                        <!-- AQI Progress Track -->
+                        <div class="aqi-spectrum-track">
+                            <div class="aqi-pointer" id="aqi-pointer" style="left: 14%;"></div>
+                            <div class="aqi-segment seg-good" title="0-50 Good"></div>
+                            <div class="aqi-segment seg-moderate" title="51-100 Moderate"></div>
+                            <div class="aqi-segment seg-unhealthy-sensitive"
+                                title="101-150 Unhealthy for Sensitive Groups"></div>
+                            <div class="aqi-segment seg-unhealthy" title="151-200 Unhealthy"></div>
+                            <div class="aqi-segment seg-very-unhealthy" title="201-300 Very Unhealthy"></div>
+                            <div class="aqi-segment seg-hazardous" title="301-500 Hazardous"></div>
                         </div>
-                        <div class="radial-gauge-container">
-                            <svg class="radial-svg" viewBox="0 0 120 120">
-                                <circle cx="60" cy="60" r="48" class="radial-bg" />
-                                <circle cx="60" cy="60" r="48" class="radial-bar cyan-bar" id="humidity-arc-bar" stroke-dasharray="301" stroke-dashoffset="120" />
-                            </svg>
-                            <div class="radial-center-content">
-                                <span class="radial-value" id="humidity-val">62</span>
-                                <span class="radial-unit">%</span>
-                            </div>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">DEW POINT</span>
-                                <span class="val" id="dew-point-card">14.2°C</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">VAPOR PRESS</span>
-                                <span class="val" id="vapor-press">1.82 kPa</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Gauge 4: Lunar Phase Visualizer -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-moon amber-text"></i> LUNAR PHASE CYCLE</span>
-                            <span class="g-badge" id="lunar-illum-badge">78% ILLUM</span>
-                        </div>
-                        <div class="lunar-visual-container">
-                            <div class="moon-globe" id="moon-disc">
-                                <div class="moon-craters"></div>
-                                <div class="moon-shadow-overlay" id="moon-shadow"></div>
-                            </div>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">CURRENT PHASE</span>
-                                <span class="val" id="lunar-phase-name">Waxing Gibbous</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">LUNAR AGE</span>
-                                <span class="val" id="lunar-age">10.4 Days</span>
-                            </div>
-                        </div>
-                    </div>
+                        <!-- Color-Coded Particulate Concentration Chips -->
+                        <div class="particulate-chips-grid">
 
-                    <!-- Gauge 5: UV Index & Irradiance -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-sun amber-text"></i> UV INDEX RADIANCE</span>
-                            <span class="g-badge" id="uv-badge">MODERATE</span>
-                        </div>
-                        <div class="uv-bar-container">
-                            <div class="uv-number-big" id="uv-num-val">4.2</div>
-                            <div class="uv-track">
-                                <div class="uv-fill" id="uv-fill-bar" style="width: 35%;"></div>
+                            <!-- Chip: PM2.5 -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-pm25">
+                                <div class="chip-top">
+                                    <span class="chip-name">PM 2.5</span>
+                                    <span class="chip-status-tag" id="status-pm25">GOOD</span>
+                                </div>
+                                <div class="chip-value" id="val-pm25">10.2 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-pm25" style="width: 20%;"></div>
+                                </div>
                             </div>
-                            <span class="uv-desc" id="uv-advice">Protection Required Near Noon</span>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">SOLAR IRRADIANCE</span>
-                                <span class="val" id="solar-irradiance">420 W/m²</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">MAX TODAY</span>
-                                <span class="val" id="uv-max-today">6.8 UV</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Gauge 6: Air Optics & Visibility -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-eye cyan-text"></i> AIR OPTICS & VISIBILITY</span>
-                            <span class="g-badge" id="vis-status">CLEAR</span>
-                        </div>
-                        <div class="optics-container">
-                            <div class="optics-val-big" id="vis-val">10.0 <span class="optics-unit">km</span></div>
-                            <div class="optics-meter">
-                                <div class="optics-fill" id="vis-fill-bar" style="width: 100%;"></div>
+                            <!-- Chip: PM10 -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-pm10">
+                                <div class="chip-top">
+                                    <span class="chip-name">PM 10</span>
+                                    <span class="chip-status-tag" id="status-pm10">GOOD</span>
+                                </div>
+                                <div class="chip-value" id="val-pm10">24.5 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-pm10" style="width: 25%;"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">ATMOS HORIZON</span>
-                                <span class="val" id="horizon-dist">10,000 m</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">HAZE INDEX</span>
-                                <span class="val" id="haze-index">Low</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Gauge 7: Cloud Cover & Ceiling Height -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-cloud cyan-text"></i> CLOUD COVER & CEILING</span>
-                            <span class="g-badge" id="cloud-badge">PARTLY CLOUDY</span>
-                        </div>
-                        <div class="cloud-visual-container">
-                            <div class="cloud-percent-display" id="cloud-pct-val">28%</div>
-                            <div class="cloud-bars">
-                                <div class="c-layer-bar" style="height: 40%;" title="Low Cloud Layer"></div>
-                                <div class="c-layer-bar" style="height: 70%;" title="Mid Cloud Layer"></div>
-                                <div class="c-layer-bar" style="height: 25%;" title="High Cirrus Layer"></div>
+                            <!-- Chip: CO -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-co">
+                                <div class="chip-top">
+                                    <span class="chip-name">CO (Carbon Monoxide)</span>
+                                    <span class="chip-status-tag" id="status-co">EXCELLENT</span>
+                                </div>
+                                <div class="chip-value" id="val-co">210 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-co" style="width: 15%;"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">CLOUD BASE</span>
-                                <span class="val" id="cloud-base-val">1,200 m</span>
-                            </div>
-                            <div class="gf-item">
-                                <span class="lbl">CEILING</span>
-                                <span class="val" id="cloud-ceiling-val">3,500 m</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Gauge 8: Thermal Comfort / Heat Index -->
-                    <div class="glass-card tilt-card gauge-card">
-                        <div class="gauge-header">
-                            <span class="g-title"><i class="fa-solid fa-temperature-three-quarters amber-text"></i> THERMAL COMFORT INDEX</span>
-                            <span class="g-badge" id="thermal-badge">OPTIMAL</span>
-                        </div>
-                        <div class="thermal-container">
-                            <div class="thermal-big" id="heat-index-val">25.0°C</div>
-                            <div class="thermal-status-text" id="heat-index-desc">No Risk of Heat Stress</div>
-                        </div>
-                        <div class="gauge-footer-metrics">
-                            <div class="gf-item">
-                                <span class="lbl">WIND CHILL</span>
-                                <span class="val" id="wind-chill-val">23.8°C</span>
+                            <!-- Chip: NO2 -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-no2">
+                                <div class="chip-top">
+                                    <span class="chip-name">NO2 (Nitrogen Dioxide)</span>
+                                    <span class="chip-status-tag" id="status-no2">GOOD</span>
+                                </div>
+                                <div class="chip-value" id="val-no2">14.8 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-no2" style="width: 18%;"></div>
+                                </div>
                             </div>
-                            <div class="gf-item">
-                                <span class="lbl">HUMIDEX</span>
-                                <span class="val" id="humidex-val">26.5</span>
+
+                            <!-- Chip: O3 -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-o3">
+                                <div class="chip-top">
+                                    <span class="chip-name">O3 (Ozone)</span>
+                                    <span class="chip-status-tag" id="status-o3">MODERATE</span>
+                                </div>
+                                <div class="chip-value" id="val-o3">58.0 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-o3" style="width: 35%;"></div>
+                                </div>
                             </div>
+
+                            <!-- Chip: SO2 -->
+                            <div class="particulate-chip glass-card tilt-card" id="chip-so2">
+                                <div class="chip-top">
+                                    <span class="chip-name">SO2 (Sulphur Dioxide)</span>
+                                    <span class="chip-status-tag" id="status-so2">LOW</span>
+                                </div>
+                                <div class="chip-value" id="val-so2">3.4 <span class="chip-unit">µg/m³</span></div>
+                                <div class="chip-bar">
+                                    <div class="chip-fill" id="fill-so2" style="width: 10%;"></div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
                 </div>
+            </section>
 
-                <!-- Scientific AQI Command Center -->
-                <div class="aqi-command-center glass-card">
-                    <div class="aqi-header">
-                        <div class="aqi-title-group">
-                            <i class="fa-solid fa-lungs aqi-icon"></i>
-                            <div>
-                                <h3 class="aqi-main-title">Scientific Air Quality (AQI) Command Center</h3>
-                                <p class="aqi-subtitle">Real-time Particulate Matter (PM2.5, PM10) & Atmospheric Trace Gases</p>
-                            </div>
-                        </div>
-                        <div class="aqi-score-badge" id="aqi-score-badge">
-                            <span class="aqi-num" id="aqi-score-num">42</span>
-                            <span class="aqi-label" id="aqi-score-label">GOOD</span>
-                        </div>
-                    </div>
-
-                    <!-- AQI Progress Track -->
-                    <div class="aqi-spectrum-track">
-                        <div class="aqi-pointer" id="aqi-pointer" style="left: 14%;"></div>
-                        <div class="aqi-segment seg-good" title="0-50 Good"></div>
-                        <div class="aqi-segment seg-moderate" title="51-100 Moderate"></div>
-                        <div class="aqi-segment seg-unhealthy-sensitive" title="101-150 Unhealthy for Sensitive Groups"></div>
-                        <div class="aqi-segment seg-unhealthy" title="151-200 Unhealthy"></div>
-                        <div class="aqi-segment seg-very-unhealthy" title="201-300 Very Unhealthy"></div>
-                        <div class="aqi-segment seg-hazardous" title="301-500 Hazardous"></div>
-                    </div>
-
-                    <!-- Color-Coded Particulate Concentration Chips -->
-                    <div class="particulate-chips-grid">
-                        
-                        <!-- Chip: PM2.5 -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-pm25">
-                            <div class="chip-top">
-                                <span class="chip-name">PM 2.5</span>
-                                <span class="chip-status-tag" id="status-pm25">GOOD</span>
-                            </div>
-                            <div class="chip-value" id="val-pm25">10.2 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-pm25" style="width: 20%;"></div></div>
-                        </div>
-
-                        <!-- Chip: PM10 -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-pm10">
-                            <div class="chip-top">
-                                <span class="chip-name">PM 10</span>
-                                <span class="chip-status-tag" id="status-pm10">GOOD</span>
-                            </div>
-                            <div class="chip-value" id="val-pm10">24.5 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-pm10" style="width: 25%;"></div></div>
-                        </div>
-
-                        <!-- Chip: CO -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-co">
-                            <div class="chip-top">
-                                <span class="chip-name">CO (Carbon Monoxide)</span>
-                                <span class="chip-status-tag" id="status-co">EXCELLENT</span>
-                            </div>
-                            <div class="chip-value" id="val-co">210 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-co" style="width: 15%;"></div></div>
-                        </div>
-
-                        <!-- Chip: NO2 -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-no2">
-                            <div class="chip-top">
-                                <span class="chip-name">NO2 (Nitrogen Dioxide)</span>
-                                <span class="chip-status-tag" id="status-no2">GOOD</span>
-                            </div>
-                            <div class="chip-value" id="val-no2">14.8 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-no2" style="width: 18%;"></div></div>
-                        </div>
-
-                        <!-- Chip: O3 -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-o3">
-                            <div class="chip-top">
-                                <span class="chip-name">O3 (Ozone)</span>
-                                <span class="chip-status-tag" id="status-o3">MODERATE</span>
-                            </div>
-                            <div class="chip-value" id="val-o3">58.0 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-o3" style="width: 35%;"></div></div>
-                        </div>
-
-                        <!-- Chip: SO2 -->
-                        <div class="particulate-chip glass-card tilt-card" id="chip-so2">
-                            <div class="chip-top">
-                                <span class="chip-name">SO2 (Sulphur Dioxide)</span>
-                                <span class="chip-status-tag" id="status-so2">LOW</span>
-                            </div>
-                            <div class="chip-value" id="val-so2">3.4 <span class="chip-unit">µg/m³</span></div>
-                            <div class="chip-bar"><div class="chip-fill" id="fill-so2" style="width: 10%;"></div></div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- ==========================================
+            <!-- ==========================================
              SECTION 3: INTERACTIVE TOPOGRAPHIC MAP (GIS)
              ========================================== -->
-        <section id="gis-section" class="gis-section">
-            <div class="section-container">
-                <div class="section-title-block">
-                    <span class="section-badge"><i class="fa-solid fa-map-location-dot"></i> SECTION 03</span>
-                    <h2 class="section-heading">Interactive Topographic Map (GIS)</h2>
-                    <p class="section-subtext">Spatial Telemetry, Global Grid Projection & Interactive Coordinates</p>
-                </div>
-
-                <!-- Full-Width GIS Map Container -->
-                <div class="gis-map-wrapper glass-card">
-                    <!-- Leaflet Container -->
-                    <div id="gis-map" class="gis-map-canvas"></div>
-
-                    <!-- Floating Spatial Coordinate Badges -->
-                    <div class="spatial-badges-overlay">
-                        <div class="spatial-badge">
-                            <span class="s-label"><i class="fa-solid fa-arrows-up-down"></i> LATITUDE</span>
-                            <span class="s-val" id="gis-lat">35.6762° N</span>
-                        </div>
-                        <div class="spatial-badge">
-                            <span class="s-label"><i class="fa-solid fa-arrows-left-right"></i> LONGITUDE</span>
-                            <span class="s-val" id="gis-lng">139.6503° E</span>
-                        </div>
-                        <div class="spatial-badge">
-                            <span class="s-label"><i class="fa-solid fa-mountain"></i> ELEVATION</span>
-                            <span class="s-val" id="gis-alt">40 m MSL</span>
-                        </div>
-                        <div class="spatial-badge">
-                            <span class="s-label"><i class="fa-solid fa-border-all"></i> MGRS GRID</span>
-                            <span class="s-val" id="gis-mgrs">54S UE 839 614</span>
-                        </div>
+            <section id="gis-section" class="gis-section">
+                <div class="section-container">
+                    <div class="section-title-block">
+                        <span class="section-badge"><i class="fa-solid fa-map-location-dot"></i> SECTION 03</span>
+                        <h2 class="section-heading">Interactive Topographic Map (GIS)</h2>
+                        <p class="section-subtext">Spatial Telemetry, Global Grid Projection & Interactive Coordinates
+                        </p>
                     </div>
 
-                    <!-- Map Interaction Hint -->
-                    <div class="map-hint-badge">
-                        <i class="fa-solid fa-hand-pointer"></i> Click anywhere on map to query telemetry
+                    <!-- Full-Width GIS Map Container -->
+                    <div class="gis-map-wrapper glass-card">
+                        <!-- Leaflet Container -->
+                        <div id="gis-map" class="gis-map-canvas"></div>
+
+                        <!-- Floating Spatial Coordinate Badges -->
+                        <div class="spatial-badges-overlay">
+                            <div class="spatial-badge">
+                                <span class="s-label"><i class="fa-solid fa-arrows-up-down"></i> LATITUDE</span>
+                                <span class="s-val" id="gis-lat">35.6762° N</span>
+                            </div>
+                            <div class="spatial-badge">
+                                <span class="s-label"><i class="fa-solid fa-arrows-left-right"></i> LONGITUDE</span>
+                                <span class="s-val" id="gis-lng">139.6503° E</span>
+                            </div>
+                            <div class="spatial-badge">
+                                <span class="s-label"><i class="fa-solid fa-mountain"></i> ELEVATION</span>
+                                <span class="s-val" id="gis-alt">40 m MSL</span>
+                            </div>
+                            <div class="spatial-badge">
+                                <span class="s-label"><i class="fa-solid fa-border-all"></i> MGRS GRID</span>
+                                <span class="s-val" id="gis-mgrs">54S UE 839 614</span>
+                            </div>
+                        </div>
+
+                        <!-- Map Interaction Hint -->
+                        <div class="map-hint-badge">
+                            <i class="fa-solid fa-hand-pointer"></i> Click anywhere on map to query telemetry
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ==========================================
+            <!-- ==========================================
              SECTION 4: VISITABLE PLACES & CULTURAL EXPLORER
              ========================================== -->
-        <section id="cultural-explorer" class="explorer-section">
-            <div class="section-container">
-                <div class="section-title-block">
-                    <span class="section-badge"><i class="fa-solid fa-monument"></i> SECTION 04</span>
-                    <h2 class="section-heading">Visitable Places & Cultural Explorer</h2>
-                    <p class="section-subtext">Geotargeted Cultural Landmarks & Nearby Points of Interest (Wikipedia REST API)</p>
-                </div>
-
-                <!-- Bento-Box Grid Container -->
-                <div class="bento-grid" id="bento-places-grid">
-                    <!-- Dynamic Bento Cards Injected Here via JavaScript -->
-                    <div class="bento-loading-state glass-card">
-                        <i class="fa-solid fa-atom fa-spin loading-spin"></i>
-                        <p>Querying Wikipedia Geosearch Engine for nearby landmarks...</p>
+            <section id="cultural-explorer" class="explorer-section">
+                <div class="section-container">
+                    <div class="section-title-block">
+                        <span class="section-badge"><i class="fa-solid fa-monument"></i> SECTION 04</span>
+                        <h2 class="section-heading">Visitable Places & Cultural Explorer</h2>
+                        <p class="section-subtext">Geotargeted Cultural Landmarks & Nearby Points of Interest (Wikipedia
+                            REST API)</p>
                     </div>
+
+                    <!-- Bento-Box Grid Container -->
+                    <div class="bento-grid" id="bento-places-grid">
+                        <!-- Dynamic Bento Cards Injected Here via JavaScript -->
+                        <div class="bento-loading-state glass-card">
+                            <i class="fa-solid fa-atom fa-spin loading-spin"></i>
+                            <p>Querying Wikipedia Geosearch Engine for nearby landmarks...</p>
+                        </div>
+                    </div>
+
                 </div>
+            </section>
 
-            </div>
-        </section>
+        </main>
 
-    </main>
-
-    <!-- Sleek Professional Footer -->
-    <footer class="app-footer">
-        <div class="footer-container glass-card">
-            <div class="footer-brand">
-                <i class="fa-solid fa-compass-drafting f-logo"></i>
-                <span class="f-name">ATMOS — FIELD WEATHER INSTRUMENT</span>
+        <!-- Sleek Professional Footer -->
+        <footer class="app-footer">
+            <div class="footer-container glass-card">
+                <div class="footer-brand">
+                    <i class="fa-solid fa-compass-drafting f-logo"></i>
+                    <span class="f-name">ATMOS — FIELD WEATHER INSTRUMENT</span>
+                </div>
+                <p class="footer-credit">
+                    Designed & Developed by <strong>Aniket Yadav | BBD</strong>
+                </p>
+                <div class="footer-social-links">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link"
+                        title="GitHub Repository">
+                        <i class="fa-brands fa-github"></i>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link"
+                        title="LinkedIn Profile">
+                        <i class="fa-brands fa-linkedin"></i>
+                        <span>LinkedIn</span>
+                    </a>
+                </div>
             </div>
-            <p class="footer-credit">
-                Designed & Developed by <strong>Aniket Yadav | BBD</strong>
-            </p>
-            <div class="footer-social-links">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub Repository">
-                    <i class="fa-brands fa-github"></i>
-                    <span>GitHub</span>
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn Profile">
-                    <i class="fa-brands fa-linkedin"></i>
-                    <span>LinkedIn</span>
-                </a>
-            </div>
-        </div>
-    </footer>
+        </footer>
     </div>
 
 </body>
+
 </html>

@@ -199,15 +199,57 @@
         });
     }
 
+    async function reverseGeocodeCoords(lat, lon) {
+        if (lat === undefined || lon === undefined) return null;
+        try {
+            const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+            if (res.ok) {
+                const d = await res.json();
+                const cityName = d.city || d.locality || d.principalSubdivision || d.countryName;
+                if (cityName && !/^[\d\.\,\-\s]+$/.test(cityName)) {
+                    return { name: cityName, country: d.countryName || '' };
+                }
+            }
+        } catch (e) {}
+
+        try {
+            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${lat},${lon}&count=1&language=en`);
+            if (res.ok) {
+                const d = await res.json();
+                if (d.results && d.results[0] && d.results[0].name) {
+                    return { name: d.results[0].name, country: d.results[0].country || '' };
+                }
+            }
+        } catch (e) {}
+
+        return null;
+    }
+
     // ==========================================================================
     // 4. 4-TIER WEATHER ENGINE PIPELINE
     // ==========================================================================
     async function executeWeatherPipeline(query) {
         updatePipelineStatus('PIPELINE: EXECUTING TIER 1...', 'cyan');
 
+        // Check if query is lat,lon or numeric coordinates
+        let queryLat, queryLon, resolvedCityName, resolvedCountry;
+        if (query.includes(',') || /^[\d\.\,\-\s]+$/.test(query.trim())) {
+            const parts = query.split(',');
+            queryLat = parseFloat(parts[0]);
+            queryLon = parseFloat(parts[1] !== undefined ? parts[1] : parts[0]);
+            if (!isNaN(queryLat) && !isNaN(queryLon)) {
+                const rev = await reverseGeocodeCoords(queryLat, queryLon);
+                if (rev) {
+                    resolvedCityName = rev.name;
+                    resolvedCountry = rev.country;
+                }
+            }
+        }
+
         // Tier 1: Vercel Proxy (/api/weather)
         try {
-            const res = await fetch(`/api/weather?q=${encodeURIComponent(query)}&days=3&aqi=yes`);
+            const searchQuery = resolvedCityName || query;
+            const res = await fetch(`/api/weather?q=${encodeURIComponent(searchQuery)}&days=3&aqi=yes`);
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.location && data.current) {
@@ -224,7 +266,8 @@
         // Tier 2: Direct WeatherAPI Key Fallback
         try {
             const apiKey = '8d76d41be2ad4fb88ef211322241604'; // Client fallback key
-            const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(query)}&days=3&aqi=yes`);
+            const searchQuery = resolvedCityName || query;
+            const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(searchQuery)}&days=3&aqi=yes`);
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.location && data.current) {
@@ -241,14 +284,9 @@
         // Tier 3: Open-Meteo Zero-Key API Fallback
         try {
             updatePipelineStatus('PIPELINE: EXECUTING TIER 3 (OPEN-METEO)...', 'amber');
-            let lat, lon, name = query, country = '';
+            let lat = queryLat, lon = queryLon, name = resolvedCityName || query, country = resolvedCountry || '';
 
-            // Check if query is lat,lon
-            if (query.includes(',')) {
-                const parts = query.split(',');
-                lat = parseFloat(parts[0]);
-                lon = parseFloat(parts[1]);
-            } else {
+            if (lat === undefined || lon === undefined) {
                 // Geocode city name via Open-Meteo
                 const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en`);
                 if (geoRes.ok) {
@@ -1304,11 +1342,21 @@
         grid.innerHTML = `
             <div class="bento-loading-state glass-card">
                 <i class="fa-solid fa-atom fa-spin loading-spin"></i>
-                <p>Retrieving authentic visitable places for ${cityName}...<p>
+                <p>Retrieving authentic visitable places...<p>
             </div>
         `;
 
-        const rawCity = (cityName || '').trim().split(',')[0].toLowerCase();
+        let rawCity = (cityName || '').trim().split(',')[0].toLowerCase();
+
+        // If cityName is coordinates or numeric, attempt reverse geocoding to resolve city name
+        if (!rawCity || /^[\d\.\,\-\s]+$/.test(rawCity)) {
+            const rev = await reverseGeocodeCoords(lat, lon);
+            if (rev && rev.name) {
+                cityName = rev.name;
+                rawCity = rev.name.trim().split(',')[0].toLowerCase();
+            }
+        }
+
         const cleanCity = CITY_ALIASES[rawCity] || rawCity;
 
         // 1. Check Curated High-Precision Database (Direct or Exact Match)
@@ -1464,7 +1512,11 @@
         if (!grid) return;
         grid.innerHTML = '';
 
-        const displayCity = (cityName || 'City Center').split(',')[0];
+        let rawCity = (cityName || '').split(',')[0].trim();
+        if (!rawCity || /^[\d\.\,\-\s]+$/.test(rawCity)) {
+            rawCity = 'Regional';
+        }
+        const displayCity = rawCity;
 
         const samplePlaces = [
             {

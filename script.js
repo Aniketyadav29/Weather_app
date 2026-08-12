@@ -35,13 +35,14 @@
     // ==========================================================================
     document.addEventListener('DOMContentLoaded', () => {
         initClocks();
+        initVolumetricCanvas();
         initSearchAndPresets();
         init3DStage();
         initGISMap();
         initTiltEffect();
 
-        // Initial Data Fetch for Default Location (Tokyo)
-        executeWeatherPipeline('Tokyo');
+        // Initial Data Fetch for Default Location (San Francisco)
+        executeWeatherPipeline('San Francisco');
     });
 
     // ==========================================================================
@@ -522,31 +523,135 @@
     }
 
     // ==========================================================================
+    // 5B. VOLUMETRIC BACKGROUND CANVAS ENGINE
+    // ==========================================================================
+    function initVolumetricCanvas() {
+        const canvas = document.getElementById('bg-volumetric-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initStars();
+            initClouds();
+        });
+
+        let stars = [];
+        function initStars() {
+            stars = [];
+            const count = Math.floor((width * height) / 3000);
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 1.4 + 0.4,
+                    alpha: Math.random() * 0.8 + 0.2,
+                    speed: Math.random() * 0.015 + 0.005
+                });
+            }
+        }
+
+        let clouds = [];
+        function initClouds() {
+            clouds = [];
+            const cloudCount = 16;
+            for (let i = 0; i < cloudCount; i++) {
+                clouds.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 260 + 140,
+                    vx: Math.random() * 0.15 + 0.05,
+                    vy: Math.random() * 0.04 - 0.02,
+                    opacity: Math.random() * 0.22 + 0.08
+                });
+            }
+        }
+
+        initStars();
+        initClouds();
+
+        function renderBackground() {
+            requestAnimationFrame(renderBackground);
+            ctx.clearRect(0, 0, width, height);
+
+            // Render Stars
+            for (let s of stars) {
+                s.alpha += Math.sin(Date.now() * s.speed) * 0.004;
+                const clampedAlpha = Math.max(0.1, Math.min(0.95, s.alpha));
+                ctx.fillStyle = `rgba(255, 255, 255, ${clampedAlpha})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Render Volumetric Slow Moving Clouds
+            for (let c of clouds) {
+                c.x += c.vx;
+                c.y += c.vy;
+
+                if (c.x - c.r > width) c.x = -c.r;
+                if (c.y - c.r > height) c.y = -c.r;
+                if (c.y + c.r < 0) c.y = height + c.r;
+
+                const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r);
+                grad.addColorStop(0, `rgba(18, 38, 75, ${c.opacity})`);
+                grad.addColorStop(0.5, `rgba(10, 22, 46, ${c.opacity * 0.5})`);
+                grad.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        renderBackground();
+    }
+
+    // ==========================================================================
     // 6. PROCESS & BIND WEATHER DATA TO UI
     // ==========================================================================
     function processWeatherData(data) {
         state.weatherData = data;
         state.currentLocation = data.location;
 
-        // Update Location Hero Header
-        setElText('loc-display-name', `${data.location.name}${data.location.country ? ', ' + data.location.country : ''}`);
-        setElText('loc-coords', `🌐 ${data.location.lat.toFixed(4)}° N, ${data.location.lon.toFixed(4)}° E`);
-        setElText('loc-tz', `⏰ ${data.location.tz}`);
-        setElText('loc-elevation', `🏔️ Elev: ${data.location.elevation}m`);
+        // Location & Time Display (Mockup matching)
+        const cityTitle = `${data.location.name.toUpperCase()}${data.location.country ? ', ' + data.location.country.toUpperCase() : ''}`;
+        setElText('loc-display-name', cityTitle);
 
-        // Temperature Main
+        const now = new Date();
+        const timeOptions = { hour: 'numeric', minute: '2-digit' };
+        const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
+        const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+        const dateStr = now.toLocaleDateString('en-US', dateOptions);
+        setElText('dash-date-time', `${timeStr}, ${dateStr}`);
+
+        setElText('loc-coords', `🌐 ${data.location.lat.toFixed(4)}° N, ${data.location.lon.toFixed(4)}° E`);
+
+        // Main Temperature & Condition Block
         const tempEl = document.getElementById('temp-big');
         if (tempEl) tempEl.innerHTML = `${data.tempC}°<span class="unit">C</span>`;
-        setElText('condition-badge', data.condition);
-        setElText('feels-like-display', `Feels ${data.feelsLikeC}°C`);
+        setElText('condition-badge', (data.condition || 'PARTLY CLOUDY').toUpperCase());
+        setElText('feels-like-display', `FEELS LIKE: ${data.feelsLikeC}°C`);
 
-        // Quick Metrics
-        setElText('day-range-val', `${data.lowC}°C — ${data.highC}°C`);
-        setElText('precip-val', `${data.precipMm} mm`);
-        setElText('dew-point-val', `${data.dewPointC}°C`);
-        setElText('pressure-trend-val', `${data.pressureHpa} hPa ↑`);
+        // Hero Dashboard Metrics Grid (Right Column)
+        setElText('metric-feels', `${data.feelsLikeC}°C`);
+        setElText('metric-wind', `${data.windSpeedKmh} km/h ${data.windDir}`);
+        setElText('metric-humidity', `${data.humidityPct}%`);
+        setElText('metric-rain', `${Math.round(data.precipMm * 10 || 5)}%`);
+        setElText('metric-pressure', `${data.pressureHpa} hPa`);
 
-        // Update Extended 5-Day Forecast
+        // Hero 3D Weather Stage Visual
+        const heroStage = document.getElementById('weather-3d-icon-container');
+        if (heroStage) {
+            heroStage.innerHTML = get3DWeatherIconSVG(data.condition);
+        }
+
+        // Update Extended 5-Day Forecast Grid
         renderExtendedForecast(data.forecastDays);
 
         // Update 8 Field Gauges
@@ -573,27 +678,19 @@
         forecastDays.forEach((f, idx) => {
             const iconSvg = get3DWeatherIconSVG(f.condition);
             const card = document.createElement('div');
-            card.className = 'glass-card tilt-card ef-card';
+            card.className = 'forecast-card-glass';
+
+            const dayShort = f.dayName.substring(0, 3).toUpperCase();
 
             card.innerHTML = `
-                <div class="ef-card-header">
-                    <span class="ef-day-name">${f.dayName}</span>
-                    <span class="ef-rain-chance"><i class="fa-solid fa-droplet cyan-text"></i> ${f.rainChance}%</span>
-                </div>
-                <div class="ef-icon-wrapper">
+                <span class="fc-day">${dayShort}</span>
+                <div class="fc-icon-wrapper">
                     ${iconSvg}
                 </div>
-                <div class="ef-condition-text" title="${f.condition}">${f.condition}</div>
-                <div class="ef-temp-range">
-                    <span class="ef-temp-high">${f.maxTempC}°</span>
-                    <span class="ef-temp-sep">/</span>
-                    <span class="ef-temp-low">${f.minTempC}°C</span>
-                </div>
+                <span class="fc-temp">${f.maxTempC}° / ${f.minTempC}°C</span>
             `;
             grid.appendChild(card);
         });
-
-        initTiltEffect();
     }
 
     function get3DWeatherIconSVG(cond) {

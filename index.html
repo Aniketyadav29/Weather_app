@@ -31,220 +31,231 @@
 </head>
 <body>
 
-    <!-- Background Ambient Glow & Mesh -->
+    <!-- Background Ambient Glow, Volumetric Clouds & Starfield Canvas -->
     <div class="ambient-background">
+        <canvas id="bg-volumetric-canvas"></canvas>
         <div class="glow-orb glow-cyan"></div>
         <div class="glow-orb glow-amber"></div>
         <div class="glow-orb glow-indigo"></div>
         <div class="grid-overlay"></div>
     </div>
 
-    <!-- Navigation / Header Bar -->
-    <header class="app-header">
-        <div class="header-container">
-            <div class="brand-logo">
-                <div class="logo-icon-wrapper">
-                    <i class="fa-solid fa-compass-drafting logo-icon"></i>
-                    <span class="logo-pulse"></span>
+    <!-- Main Outer Dashboard Viewport Frame -->
+    <div class="dashboard-viewport">
+
+        <!-- Navigation / Header Bar matching Mockup -->
+        <header class="mockup-header-nav">
+            <div class="nav-brand">
+                <i class="fa-solid fa-cloud-sun-rain brand-icon"></i>
+                <span class="brand-title">AETHER WEATHER</span>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#hero-stage" class="nav-link active">HOME</a>
+                <a href="#extended-forecast" class="nav-link">FORECAST</a>
+                <a href="#gis-section" class="nav-link">RADAR</a>
+                <a href="#telemetry-panel" class="nav-link">HISTORY</a>
+                <a href="#cultural-explorer" class="nav-link">ABOUT</a>
+            </nav>
+
+            <div class="nav-search-wrapper">
+                <div class="nav-search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="city-search" placeholder="Search city or coordinates..." autocomplete="off" />
+                    <button type="button" id="geo-btn" class="btn-geo" title="Use Current GPS Location">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </button>
+                    <button type="button" id="search-btn" class="btn-search-exec">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
                 </div>
-                <div class="brand-text">
-                    <span class="brand-name">ATMOS</span>
-                    <span class="brand-sub">FIELD WEATHER INSTRUMENT</span>
+                <!-- Autocomplete Dropdown -->
+                <div id="autocomplete-results" class="autocomplete-dropdown hidden"></div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Quick Presets Bar -->
+            <div class="preset-bar-container">
+                <span class="preset-label"><i class="fa-solid fa-bolt-lightning amber-text"></i> POPULAR LOCATIONS:</span>
+                <div class="preset-pills">
+                    <button class="preset-chip" data-city="San Francisco">San Francisco</button>
+                    <button class="preset-chip" data-city="Tokyo">Tokyo</button>
+                    <button class="preset-chip" data-city="London">London</button>
+                    <button class="preset-chip" data-city="Jaipur">Jaipur</button>
+                    <button class="preset-chip" data-city="New York">New York</button>
+                    <button class="preset-chip" data-city="Sydney">Sydney</button>
+                </div>
+                <div class="pipeline-badge" id="pipeline-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="status-text">SYSTEM: ONLINE</span>
                 </div>
             </div>
 
-            <!-- Engine Pipeline & Status Badge -->
-            <div class="pipeline-badge" id="pipeline-status">
-                <span class="status-dot"></span>
-                <span class="status-text" id="status-text">PIPELINE: INITIALIZING...</span>
-            </div>
-
-            <!-- Live Telemetry Clock -->
-            <div class="telemetry-clock">
-                <div class="clock-item">
-                    <span class="clock-label">SYS UTC</span>
-                    <span class="clock-value" id="utc-time">00:00:00 UTC</span>
-                </div>
-                <div class="clock-item">
-                    <span class="clock-label">LOCAL TIME</span>
-                    <span class="clock-value" id="local-time">00:00:00</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <!-- ==========================================
-             SECTION 1: HERO & SEARCH COMMAND CENTER (THE 3D STAGE)
-             ========================================== -->
-        <section id="hero-stage" class="hero-section">
-            <div class="section-container hero-grid">
+            <!-- ==========================================
+                 CINEMATIC 3D GLASSMORPHISM DASHBOARD PANEL
+                 ========================================== -->
+            <section id="hero-stage" class="floating-dashboard-panel glass-card">
                 
-                <!-- Search & Location Command Column -->
-                <div class="search-command-panel">
-                    <div class="glass-card command-card">
-                        <div class="card-header-tag">
-                            <i class="fa-solid fa-crosshairs"></i> SEARCH COMMAND CENTER
-                        </div>
-                        <h1 class="hero-title">Global Meteorological Telemetry</h1>
-                        <p class="hero-subtitle">High-precision field measurements & scientific atmospheric analysis across global coordinates.</p>
+                <!-- Dashboard Card Top Header -->
+                <div class="dashboard-card-header">
+                    <div class="location-title-block">
+                        <h1 class="dash-city-name" id="loc-display-name">SAN FRANCISCO, CA</h1>
+                        <p class="dash-time-stamp" id="dash-date-time">2:30 PM PDT, Tuesday, Oct 26</p>
+                    </div>
+                    <div class="dash-header-actions">
+                        <span class="meta-tag" id="loc-coords"><i class="fa-solid fa-globe"></i> 37.7749° N, 122.4194° W</span>
+                        <button class="dash-settings-btn" id="dash-settings-trigger" title="Dashboard Settings">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
 
-                        <!-- Centralized Search Bar -->
-                        <div class="search-box-wrapper">
-                            <div class="search-input-group">
-                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                <input type="text" id="city-search" placeholder="Search city, coordinates, airport IATA..." autocomplete="off" />
-                                <button type="button" id="search-btn" class="btn-cyan">
-                                    <span>EXECUTE</span>
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </button>
-                                <button type="button" id="geo-btn" class="btn-icon-glass" title="Use GPS Location">
-                                    <i class="fa-solid fa-location-crosshairs"></i>
-                                </button>
-                            </div>
-                            <!-- Autocomplete Dropdown -->
-                            <div id="autocomplete-results" class="autocomplete-dropdown hidden"></div>
-                        </div>
+                <!-- Main Current Weather Display Row -->
+                <div class="dash-current-weather-row">
+                    
+                    <!-- Left: Large Glowing Temperature Readout -->
+                    <div class="dash-temp-block">
+                        <div class="dash-temp-value" id="temp-big">24°<span class="unit">C</span></div>
+                        <div class="dash-temp-condition" id="condition-badge">PARTLY CLOUDY</div>
+                        <div class="dash-feels-like" id="feels-like-display">FEELS LIKE: 25°C</div>
+                    </div>
 
-                        <!-- Quick Location Presets -->
-                        <div class="preset-locations">
-                            <span class="preset-label">PRESETS:</span>
-                            <div class="preset-pills">
-                                <button class="preset-chip" data-city="Tokyo">Tokyo</button>
-                                <button class="preset-chip" data-city="London">London</button>
-                                <button class="preset-chip" data-city="Jaipur">Jaipur</button>
-                                <button class="preset-chip" data-city="New York">New York</button>
-                                <button class="preset-chip" data-city="Sydney">Sydney</button>
+                    <!-- Center: Prominent 3D Weather Icon Stage -->
+                    <div class="dash-3d-icon-stage" id="hero-3d-stage">
+                        <div class="weather-3d-wrapper" id="weather-3d-icon-container">
+                            <!-- High-Fidelity 3D Weather Icon Canvas / Render injected dynamically -->
+                            <div class="icon-3d-sun-cloud">
+                                <div class="sun-glow-3d"></div>
+                                <div class="sun-sphere-3d"></div>
+                                <div class="cloud-volume-3d cloud-front"></div>
+                                <div class="cloud-volume-3d cloud-back"></div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Location Hero Information Header -->
-                        <div class="current-location-hero" id="location-hero">
-                            <div class="loc-main">
-                                <h2 class="loc-name" id="loc-display-name">Tokyo, Japan</h2>
-                                <div class="loc-meta">
-                                    <span class="meta-tag" id="loc-coords"><i class="fa-solid fa-globe"></i> 35.6762° N, 139.6503° E</span>
-                                    <span class="meta-tag" id="loc-tz"><i class="fa-solid fa-clock"></i> Asia/Tokyo</span>
-                                    <span class="meta-tag" id="loc-elevation"><i class="fa-solid fa-mountain"></i> Elev: 40m</span>
-                                </div>
-                            </div>
-                            <div class="temp-main-display">
-                                <div class="temp-big" id="temp-big">24°<span class="unit">C</span></div>
-                                <div class="temp-condition">
-                                    <span class="condition-badge" id="condition-badge">Clear Sky</span>
-                                    <span class="feels-like" id="feels-like-display">Feels 25°C</span>
-                                </div>
-                            </div>
+                    <!-- Right: Key Weather Telemetry Data Metrics -->
+                    <div class="dash-metrics-grid">
+                        <div class="metric-row">
+                            <span class="m-label">FEELS LIKE</span>
+                            <span class="m-val" id="metric-feels">25°C</span>
                         </div>
-
-                        <!-- Highs / Lows / Quick Metrics -->
-                        <div class="hero-quick-metrics">
-                            <div class="q-metric">
-                                <span class="q-label">DAY RANGE</span>
-                                <span class="q-val" id="day-range-val">18°C — 28°C</span>
-                            </div>
-                            <div class="q-metric">
-                                <span class="q-label">PRECIPITATION</span>
-                                <span class="q-val" id="precip-val">0.0 mm</span>
-                            </div>
-                            <div class="q-metric">
-                                <span class="q-label">DEW POINT</span>
-                                <span class="q-val" id="dew-point-val">14°C</span>
-                            </div>
-                            <div class="q-metric">
-                                <span class="q-label">PRESSURE TREND</span>
-                                <span class="q-val cyan-text" id="pressure-trend-val">1013 hPa ↑</span>
-                            </div>
+                        <div class="metric-row">
+                            <span class="m-label">WIND</span>
+                            <span class="m-val" id="metric-wind">18 km/h WNW</span>
                         </div>
+                        <div class="metric-row">
+                            <span class="m-label">HUMIDITY</span>
+                            <span class="m-val" id="metric-humidity">68%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="m-label">RAIN</span>
+                            <span class="m-val" id="metric-rain">5%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="m-label">PRESSURE</span>
+                            <span class="m-val" id="metric-pressure">1016 hPa</span>
+                        </div>
+                    </div>
 
-                        <!-- Extended 5-Day Forecast Panel -->
-                        <div class="extended-forecast-panel">
-                            <div class="ef-header">
-                                <span class="ef-title"><i class="fa-solid fa-calendar-days amber-text"></i> EXTENDED 5-DAY FORECAST</span>
-                                <span class="ef-badge">HIGH PRECISION</span>
+                </div>
+
+                <!-- Extended 5-Day Forecast Grid Section -->
+                <div class="dash-forecast-section" id="extended-forecast">
+                    <div class="forecast-section-title">EXTENDED FORECAST</div>
+                    <div class="extended-forecast-grid" id="extended-forecast-grid">
+                        <!-- Dynamic 5-Day Forecast Glass Cards Injected via JS -->
+                        <div class="forecast-card-glass">
+                            <span class="fc-day">WED</span>
+                            <div class="fc-icon-wrapper">
+                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
                             </div>
-                            <div class="extended-forecast-grid" id="extended-forecast-grid">
-                                <!-- Dynamic 5-Day Forecast Cards Injected via JavaScript -->
+                            <span class="fc-temp">22° / 16°C</span>
+                        </div>
+                        <div class="forecast-card-glass">
+                            <span class="fc-day">THU</span>
+                            <div class="fc-icon-wrapper">
+                                <i class="fa-solid fa-cloud-showers-heavy 3d-glow"></i>
                             </div>
+                            <span class="fc-temp">19° / 14°C</span>
+                        </div>
+                        <div class="forecast-card-glass">
+                            <span class="fc-day">FRI</span>
+                            <div class="fc-icon-wrapper">
+                                <i class="fa-solid fa-sun 3d-glow"></i>
+                            </div>
+                            <span class="fc-temp">23° / 17°C</span>
+                        </div>
+                        <div class="forecast-card-glass">
+                            <span class="fc-day">SAT</span>
+                            <div class="fc-icon-wrapper">
+                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
+                            </div>
+                            <span class="fc-temp">23° / 17°C</span>
+                        </div>
+                        <div class="forecast-card-glass">
+                            <span class="fc-day">SUN</span>
+                            <div class="fc-icon-wrapper">
+                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
+                            </div>
+                            <span class="fc-temp">22° / 15°C</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3D Stage Column (Three.js Holographic Stage & Solar Timeline) -->
-                <div class="stage-3d-panel">
-                    <div class="glass-card stage-card">
-                        <div class="card-header-tag">
-                            <i class="fa-solid fa-cube"></i> THE 3D HOLOGRAPHIC STAGE
-                        </div>
-                        
-                        <!-- Canvas Container for 3D Holographic Globe -->
-                        <div class="three-canvas-container" id="canvas-container">
-                            <div class="stage-overlay-badge">
-                                <span class="badge-dot"></span> 3D ATMOSPHERIC SIMULATOR
-                            </div>
-                            <div class="stage-controls">
-                                <button class="stage-ctrl-btn" id="reset-cam" title="Reset View"><i class="fa-solid fa-arrows-to-dot"></i></button>
-                                <button class="stage-ctrl-btn" id="toggle-wireframe" title="Toggle Grid"><i class="fa-solid fa-border-all"></i></button>
-                            </div>
-                        </div>
+            </section>
 
-                        <!-- Live Sun Position / Solar Arc Timeline -->
-                        <div class="solar-arc-panel">
-                            <div class="solar-header">
-                                <span class="solar-title"><i class="fa-solid fa-sun amber-text"></i> Live Solar Arc & Daylight Timeline</span>
-                                <span class="solar-countdown" id="solar-countdown">Calculating solar arc...</span>
-                            </div>
-                            <div class="solar-arc-visual">
-                                <svg class="solar-svg" viewBox="0 0 400 120">
-                                    <!-- Background arc -->
-                                    <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-bg" />
-                                    <!-- Daytime progress arc -->
-                                    <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-active" id="solar-active-path" />
-                                    <!-- Baseline -->
-                                    <line x1="20" y1="100" x2="380" y2="100" class="solar-baseline" />
-                                    <!-- Sun Indicator Marker -->
-                                    <g id="sun-marker" transform="translate(200, 30)">
-                                        <circle r="10" class="sun-glow" />
-                                        <circle r="6" class="sun-core" />
-                                    </g>
-                                </svg>
-                            </div>
-                            <div class="solar-times">
-                                <div class="solar-time-item">
-                                    <i class="fa-solid fa-sun-plant-wilt"></i>
-                                    <div>
-                                        <span class="lbl">SUNRISE</span>
-                                        <span class="val" id="sunrise-time">05:42 AM</span>
-                                    </div>
+            <!-- ==========================================
+                 SECTION 2: PRECISION TELEMETRY & SCIENTIFIC AQI PANEL
+                 ========================================== -->
+            <section id="telemetry-panel" class="telemetry-section">
+                <div class="section-container">
+                    
+                    <!-- Live Sun Position / Solar Arc Timeline Panel -->
+                    <div class="solar-arc-panel glass-card">
+                        <div class="solar-header">
+                            <span class="solar-title"><i class="fa-solid fa-sun amber-text"></i> Live Solar Arc & Daylight Timeline</span>
+                            <span class="solar-countdown" id="solar-countdown">Calculating solar arc...</span>
+                        </div>
+                        <div class="solar-arc-visual">
+                            <svg class="solar-svg" viewBox="0 0 400 120">
+                                <!-- Background arc -->
+                                <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-bg" />
+                                <!-- Daytime progress arc -->
+                                <path d="M 30,100 A 170,80 0 0,1 370,100" class="solar-path-active" id="solar-active-path" />
+                                <!-- Baseline -->
+                                <line x1="20" y1="100" x2="380" y2="100" class="solar-baseline" />
+                                <!-- Sun Indicator Marker -->
+                                <g id="sun-marker" transform="translate(200, 30)">
+                                    <circle r="10" class="sun-glow" />
+                                    <circle r="6" class="sun-core" />
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="solar-times">
+                            <div class="solar-time-item">
+                                <i class="fa-solid fa-sun-plant-wilt"></i>
+                                <div>
+                                    <span class="lbl">SUNRISE</span>
+                                    <span class="val" id="sunrise-time">05:42 AM</span>
                                 </div>
-                                <div class="solar-time-item">
-                                    <i class="fa-solid fa-sun"></i>
-                                    <div>
-                                        <span class="lbl">SOLAR NOON</span>
-                                        <span class="val" id="solar-noon-time">12:15 PM</span>
-                                    </div>
+                            </div>
+                            <div class="solar-time-item">
+                                <i class="fa-solid fa-sun"></i>
+                                <div>
+                                    <span class="lbl">SOLAR NOON</span>
+                                    <span class="val" id="solar-noon-time">12:15 PM</span>
                                 </div>
-                                <div class="solar-time-item">
-                                    <i class="fa-solid fa-mountain-sun"></i>
-                                    <div>
-                                        <span class="lbl">SUNSET</span>
-                                        <span class="val" id="sunset-time">06:48 PM</span>
-                                    </div>
+                            </div>
+                            <div class="solar-time-item">
+                                <i class="fa-solid fa-mountain-sun"></i>
+                                <div>
+                                    <span class="lbl">SUNSET</span>
+                                    <span class="val" id="sunset-time">06:48 PM</span>
                                 </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- ==========================================
-             SECTION 2: PRECISION TELEMETRY & SCIENTIFIC AQI PANEL
-             ========================================== -->
-        <section id="telemetry-panel" class="telemetry-section">
-            <div class="section-container">
                 <div class="section-title-block">
                     <span class="section-badge"><i class="fa-solid fa-gauge-high"></i> SECTION 02</span>
                     <h2 class="section-heading">Precision Telemetry & Scientific AQI Panel</h2>
@@ -650,6 +661,7 @@
             </div>
         </div>
     </footer>
+    </div>
 
 </body>
 </html>

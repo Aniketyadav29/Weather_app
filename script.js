@@ -564,32 +564,38 @@
     // ==========================================================================
     // 5B. VOLUMETRIC BACKGROUND CANVAS ENGINE
     // ==========================================================================
+    // ==========================================================================
+    // 5B. HIGH-PERFORMANCE VOLUMETRIC BACKGROUND CANVAS ENGINE
+    // ==========================================================================
     function initVolumetricCanvas() {
         const canvas = document.getElementById('bg-volumetric-canvas');
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
+        let resizeTimer;
         window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            initStars();
-            initClouds();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                initStars();
+                initClouds();
+            }, 200);
         });
 
         let stars = [];
         function initStars() {
             stars = [];
-            const count = Math.floor((width * height) / 3000);
+            const count = Math.min(120, Math.floor((width * height) / 10000));
             for (let i = 0; i < count; i++) {
                 stars.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    r: Math.random() * 1.4 + 0.4,
-                    alpha: Math.random() * 0.8 + 0.2,
-                    speed: Math.random() * 0.015 + 0.005
+                    r: Math.random() * 1.2 + 0.5,
+                    alpha: Math.random() * 0.7 + 0.3
                 });
             }
         }
@@ -597,15 +603,15 @@
         let clouds = [];
         function initClouds() {
             clouds = [];
-            const cloudCount = 16;
+            const cloudCount = 8;
             for (let i = 0; i < cloudCount; i++) {
                 clouds.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    r: Math.random() * 260 + 140,
-                    vx: Math.random() * 0.15 + 0.05,
-                    vy: Math.random() * 0.04 - 0.02,
-                    opacity: Math.random() * 0.22 + 0.08
+                    r: Math.random() * 220 + 160,
+                    vx: Math.random() * 0.12 + 0.04,
+                    vy: Math.random() * 0.03 - 0.015,
+                    opacity: Math.random() * 0.18 + 0.06
                 });
             }
         }
@@ -613,21 +619,26 @@
         initStars();
         initClouds();
 
+        let animFrameId;
         function renderBackground() {
-            requestAnimationFrame(renderBackground);
+            if (document.hidden) {
+                animFrameId = setTimeout(() => requestAnimationFrame(renderBackground), 250);
+                return;
+            }
+            animFrameId = requestAnimationFrame(renderBackground);
             ctx.clearRect(0, 0, width, height);
 
-            // Render Stars
-            for (let s of stars) {
-                s.alpha += Math.sin(Date.now() * s.speed) * 0.004;
-                const clampedAlpha = Math.max(0.1, Math.min(0.95, s.alpha));
-                ctx.fillStyle = `rgba(255, 255, 255, ${clampedAlpha})`;
-                ctx.beginPath();
+            // Batched Star Rendering (Single Path Execution)
+            ctx.fillStyle = 'rgba(253, 251, 212, 0.75)';
+            ctx.beginPath();
+            for (let i = 0; i < stars.length; i++) {
+                const s = stars[i];
+                ctx.moveTo(s.x + s.r, s.y);
                 ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fill();
             }
+            ctx.fill();
 
-            // Render Volumetric Slow Moving Clouds
+            // Render Volumetric Slow Moving Cloud Blobs
             for (let c of clouds) {
                 c.x += c.vx;
                 c.y += c.vy;
@@ -637,8 +648,8 @@
                 if (c.y + c.r < 0) c.y = height + c.r;
 
                 const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r);
-                grad.addColorStop(0, `rgba(18, 38, 75, ${c.opacity})`);
-                grad.addColorStop(0.5, `rgba(10, 22, 46, ${c.opacity * 0.5})`);
+                grad.addColorStop(0, `rgba(22, 17, 45, ${c.opacity})`);
+                grad.addColorStop(0.6, `rgba(12, 9, 28, ${c.opacity * 0.4})`);
                 grad.addColorStop(1, 'transparent');
 
                 ctx.fillStyle = grad;
@@ -1585,34 +1596,44 @@
     }
 
     // ==========================================================================
-    // 13. GLASSMORPHIC CARD 3D TILT EFFECT
+    // 13. HIGH-PERFORMANCE 3D TILT EFFECT (ZERO-THRASHTHROTTLED)
     // ==========================================================================
     function initTiltEffect() {
-        const tiltCards = document.querySelectorAll('.tilt-card, .mockup-header-nav');
+        const tiltCards = document.querySelectorAll('.tilt-card:not([data-tilt-bound]), .mockup-header-nav:not([data-tilt-bound])');
         tiltCards.forEach(card => {
-            card.addEventListener('mousemove', handleTilt);
-            card.addEventListener('mouseleave', resetTilt);
+            card.setAttribute('data-tilt-bound', 'true');
+            let rect = null;
+            let ticking = false;
+
+            card.addEventListener('mouseenter', () => {
+                rect = card.getBoundingClientRect();
+            });
+
+            card.addEventListener('mousemove', (e) => {
+                if (!rect) rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -5;
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                if (!ticking) {
+                    ticking = true;
+                    requestAnimationFrame(() => {
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(4px)`;
+                        ticking = false;
+                    });
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                rect = null;
+                requestAnimationFrame(() => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+                });
+            });
         });
-    }
-
-    function handleTilt(e) {
-        const card = e.currentTarget;
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = ((y - centerY) / centerY) * -8;
-        const rotateY = ((x - centerX) / centerX) * 8;
-
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
-    }
-
-    function resetTilt(e) {
-        const card = e.currentTarget;
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
     }
 
     // ==========================================================================

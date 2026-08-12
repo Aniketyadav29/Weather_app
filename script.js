@@ -40,6 +40,7 @@
         init3DStage();
         initGISMap();
         initTiltEffect();
+        initNavbarNavigation();
 
         // Initial Data Fetch for Default Location (San Francisco)
         executeWeatherPipeline('San Francisco');
@@ -1612,6 +1613,77 @@
     function resetTilt(e) {
         const card = e.currentTarget;
         card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+    }
+
+    // ==========================================================================
+    // 14. NAVBAR NAVIGATION, SMOOTH SCROLL & SCROLL-SPY
+    // ==========================================================================
+    function initNavbarNavigation() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const navMenu = document.getElementById('main-nav-links');
+
+        // Mobile Menu Toggle
+        if (mobileToggle && navMenu) {
+            mobileToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('open');
+                const icon = mobileToggle.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-bars');
+                    icon.classList.toggle('fa-xmark');
+                }
+            });
+        }
+
+        // Smooth Scroll & Link Activation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetId = link.getAttribute('href');
+                if (targetId && targetId.startsWith('#')) {
+                    e.preventDefault();
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) {
+                        if (navMenu) navMenu.classList.remove('open');
+                        if (mobileToggle) {
+                            const icon = mobileToggle.querySelector('i');
+                            if (icon) {
+                                icon.classList.add('fa-bars');
+                                icon.classList.remove('fa-xmark');
+                            }
+                        }
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+
+        // Intersection Observer Scroll-Spy for Active Nav Highlight on Scroll
+        const sections = document.querySelectorAll('section[id]');
+        if (sections.length > 0 && 'IntersectionObserver' in window) {
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -55% 0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const activeId = entry.target.getAttribute('id');
+                        navLinks.forEach(l => {
+                            l.classList.remove('active');
+                            if (l.getAttribute('href') === `#${activeId}`) {
+                                l.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(sec => observer.observe(sec));
+        }
     }
 
 })();

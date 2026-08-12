@@ -56,12 +56,17 @@
                 <span class="brand-title">AETHER WEATHER</span>
             </div>
 
-            <nav class="nav-links">
-                <a href="#hero-stage" class="nav-link active">HOME</a>
-                <a href="#extended-forecast" class="nav-link">FORECAST</a>
-                <a href="#gis-section" class="nav-link">RADAR</a>
-                <a href="#telemetry-panel" class="nav-link">HISTORY</a>
-                <a href="#cultural-explorer" class="nav-link">ABOUT</a>
+            <button type="button" class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav class="nav-links" id="main-nav-links">
+                <a href="#hero-stage" class="nav-link active"><i class="fa-solid fa-house"></i> HOME</a>
+                <a href="#extended-forecast" class="nav-link"><i class="fa-solid fa-calendar-days"></i> FORECAST</a>
+                <a href="#telemetry-panel" class="nav-link"><i class="fa-solid fa-chart-line"></i> METRICS</a>
+                <a href="#gis-section" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> RADAR</a>
+                <a href="#cultural-explorer" class="nav-link"><i class="fa-solid fa-compass"></i> EXPLORER</a>
+                <a href="#about-section" class="nav-link"><i class="fa-solid fa-circle-info"></i> ABOUT</a>
             </nav>
 
             <div class="nav-search-wrapper">
@@ -672,6 +677,58 @@
                         </div>
                     </div>
 
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 SECTION 05: ABOUT & SYSTEM SPECIFICATIONS
+                 ========================================== -->
+            <section id="about-section" class="about-section">
+                <div class="section-container">
+                    <div class="section-title-block">
+                        <span class="section-badge"><i class="fa-solid fa-circle-info"></i> SECTION 05</span>
+                        <h2 class="section-heading">Project Overview & Specifications</h2>
+                        <p class="section-subtext">Cinematic 3D Glassmorphism Weather Station & Environmental Telemetry Platform</p>
+                    </div>
+
+                    <div class="about-grid glass-card">
+                        <div class="about-col">
+                            <h3 class="about-card-title"><i class="fa-solid fa-microchip cyan-text"></i> System Architecture</h3>
+                            <p class="about-text">
+                                Atmos Weather Instrument is an advanced, cinematic 3D glassmorphism weather telemetry dashboard. Powered by a 4-tier fault-tolerant weather engine, it seamlessly combines real-time satellite telemetry, 3D volumetric cloud rendering, live GIS radar maps, and localized cultural landmark geosearch.
+                            </p>
+                            <div class="about-badge-group">
+                                <span class="about-tag"><i class="fa-solid fa-cube"></i> Three.js 3D Engine</span>
+                                <span class="about-tag"><i class="fa-solid fa-layer-group"></i> Glassmorphism UI</span>
+                                <span class="about-tag"><i class="fa-solid fa-map"></i> Leaflet GIS Radar</span>
+                                <span class="about-tag"><i class="fa-solid fa-book-atlas"></i> Wikipedia Geosearch</span>
+                            </div>
+                        </div>
+
+                        <div class="about-col">
+                            <h3 class="about-card-title"><i class="fa-solid fa-server amber-text"></i> Data Pipeline & APIs</h3>
+                            <ul class="about-pipeline-list">
+                                <li><span class="p-tier">Tier 1:</span> Vercel Serverless Proxy Cache Engine</li>
+                                <li><span class="p-tier">Tier 2:</span> Direct WeatherAPI High-Precision Telemetry</li>
+                                <li><span class="p-tier">Tier 3:</span> Open-Meteo Global Satellite & AQI Engine</li>
+                                <li><span class="p-tier">Tier 4:</span> Deterministic Field Telemetry Generator</li>
+                                <li><span class="p-tier">GIS:</span> OpenStreetMap & ESRI World Topo Satellite Tiles</li>
+                                <li><span class="p-tier">Places:</span> Wikipedia REST API & BigDataCloud Geocoder</li>
+                            </ul>
+                        </div>
+
+                        <div class="about-col developer-col">
+                            <div class="dev-avatar">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <h3 class="dev-name">Aniket Yadav</h3>
+                            <p class="dev-role">Lead Developer & UI/UX Architect | BBD</p>
+                            <p class="dev-bio">Designed & engineered for high-performance atmospheric analysis, immersive visual aesthetics, and precision weather telemetry.</p>
+                            <div class="dev-links">
+                                <a href="https://github.com/Aniketyadav29/Weather_app" target="_blank" rel="noopener noreferrer" class="btn-dev-link"><i class="fa-brands fa-github"></i> GitHub Repository</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

@@ -1886,102 +1886,176 @@ body {
     z-index: 2;
 }
 
-/* Navigation Header */
+/* Cinematic 3D Floating Glassmorphic Navbar */
 .mockup-header-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem 1.8rem;
-    background: rgba(9, 17, 34, 0.65);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.8rem 1.6rem;
+    background: linear-gradient(135deg, rgba(14, 27, 54, 0.85) 0%, rgba(6, 13, 26, 0.92) 100%);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: var(--radius-xl);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
-    margin-bottom: 1.25rem;
+    box-shadow: 
+        0 24px 60px rgba(0, 0, 0, 0.75), 
+        inset 0 1px 2px rgba(255, 255, 255, 0.4), 
+        inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(84, 234, 210, 0.15);
+    position: sticky;
+    top: 14px;
+    z-index: 1000;
+    margin-bottom: 1.75rem;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mockup-header-nav:hover {
+    border-color: rgba(84, 234, 210, 0.4);
+    box-shadow: 
+        0 28px 70px rgba(0, 0, 0, 0.8), 
+        inset 0 1px 2px rgba(255, 255, 255, 0.5), 
+        inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+        0 0 45px rgba(84, 234, 210, 0.25);
 }
 
 .nav-brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.85rem;
 }
+
 .brand-icon {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: var(--cyan-electric);
-    filter: drop-shadow(0 0 10px rgba(84, 234, 210, 0.6));
+    background: rgba(84, 234, 210, 0.12);
+    border: 1px solid rgba(84, 234, 210, 0.35);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(84, 234, 210, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    filter: drop-shadow(0 0 12px rgba(84, 234, 210, 0.7));
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.nav-brand:hover .brand-icon {
+    transform: rotate(15deg) scale(1.1);
+}
+
 .brand-title {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 800;
-    letter-spacing: 0.15em;
-    color: #ffffff;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.16em;
+    background: linear-gradient(135deg, #ffffff 30%, var(--cyan-electric) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.8rem;
+    gap: 0.6rem;
+    background: rgba(4, 9, 20, 0.5);
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
+
 .nav-link {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
-    transition: all 0.25s ease;
+    padding: 0.45rem 1rem;
+    border-radius: var(--radius-full);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
-.nav-link:hover, .nav-link.active {
+
+.nav-link:hover {
     color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    background: linear-gradient(135deg, rgba(84, 234, 210, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+    border-color: rgba(84, 234, 210, 0.5);
+    box-shadow: 0 6px 18px rgba(84, 234, 210, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.nav-link.active {
+    color: #050b18;
+    background: linear-gradient(135deg, var(--cyan-electric) 0%, #2dd4bf 100%);
+    border-color: #54ead2;
+    font-weight: 800;
+    box-shadow: 0 6px 22px rgba(84, 234, 210, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    text-shadow: none;
+    transform: translateY(-2px);
 }
 
 .nav-search-wrapper {
     position: relative;
 }
+
 .nav-search-box {
     display: flex;
     align-items: center;
-    background: rgba(6, 12, 24, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(4, 9, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: var(--radius-full);
     padding: 0.35rem 0.5rem 0.35rem 1rem;
     gap: 0.5rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(255, 255, 255, 0.12);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .nav-search-box:focus-within {
     border-color: var(--cyan-electric);
-    box-shadow: 0 0 15px rgba(84, 234, 210, 0.3);
+    background: rgba(6, 14, 30, 0.95);
+    box-shadow: 0 0 24px rgba(84, 234, 210, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.7);
+    transform: scale(1.02);
 }
+
 .nav-search-box input {
     background: transparent;
     border: none;
     outline: none;
     color: #ffffff;
     font-size: 0.85rem;
+    font-weight: 500;
     width: 210px;
 }
-.nav-search-box input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
+
 .btn-geo, .btn-search-exec {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     color: #ffffff;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .btn-geo:hover, .btn-search-exec:hover {
-    background: var(--cyan-electric);
+    background: linear-gradient(135deg, var(--cyan-electric) 0%, #2dd4bf 100%);
     color: #050b18;
-    box-shadow: 0 0 12px rgba(84, 234, 210, 0.6);
+    border-color: #54ead2;
+    box-shadow: 0 6px 18px rgba(84, 234, 210, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+    transform: scale(1.1) translateY(-1px);
 }
 
 /* Quick Presets */

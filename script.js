@@ -1588,7 +1588,7 @@
     // 13. GLASSMORPHIC CARD 3D TILT EFFECT
     // ==========================================================================
     function initTiltEffect() {
-        const tiltCards = document.querySelectorAll('.tilt-card');
+        const tiltCards = document.querySelectorAll('.tilt-card, .mockup-header-nav');
         tiltCards.forEach(card => {
             card.addEventListener('mousemove', handleTilt);
             card.addEventListener('mouseleave', resetTilt);

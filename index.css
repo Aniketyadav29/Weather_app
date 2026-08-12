@@ -9,29 +9,39 @@
    0. DESIGN TOKENS & ROOT VARIABLES
    -------------------------------------------------------------------------- */
 :root {
-    /* Color System */
-    --bg-deep-space: #070d19;
-    --bg-card-glass: rgba(12, 22, 41, 0.65);
-    --bg-card-glass-hover: rgba(16, 28, 52, 0.85);
-    --bg-input-glass: rgba(7, 13, 25, 0.7);
+    /* Dreamy & Whimsical Color System Palette Tokens */
+    --color-cream: #FDFBD4;
+    --color-muted-gold: #BDB96A;
+    --color-lavender: #C1BFFF;
+    --color-vibrant-purple: #CF6DFC;
 
-    --cyan-electric: #54ead2;
-    --cyan-glow: rgba(84, 234, 210, 0.35);
-    --cyan-dim: rgba(84, 234, 210, 0.12);
+    /* Base System Overrides */
+    --bg-deep-space: #0c0919;
+    --bg-card-glass: rgba(193, 191, 255, 0.08);
+    --bg-card-glass-hover: rgba(207, 109, 252, 0.16);
+    --bg-input-glass: rgba(12, 9, 26, 0.75);
 
-    --amber-gold: #f8bd58;
-    --amber-glow: rgba(248, 189, 88, 0.35);
-    --amber-dim: rgba(248, 189, 88, 0.12);
+    /* Electric Cyan mapped to Vibrant Purple (#CF6DFC) */
+    --cyan-electric: #CF6DFC;
+    --cyan-glow: rgba(207, 109, 252, 0.45);
+    --cyan-dim: rgba(207, 109, 252, 0.15);
 
-    --indigo-nebula: #6366f1;
+    /* Amber Gold mapped to Muted Sage Gold (#BDB96A) */
+    --amber-gold: #BDB96A;
+    --amber-glow: rgba(189, 185, 106, 0.45);
+    --amber-dim: rgba(189, 185, 106, 0.15);
 
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    /* Indigo Nebula mapped to Soft Lavender (#C1BFFF) */
+    --indigo-nebula: #C1BFFF;
 
-    --border-glass: rgba(84, 234, 210, 0.15);
-    --border-glass-bright: rgba(84, 234, 210, 0.45);
-    --border-amber: rgba(248, 189, 88, 0.35);
+    /* Typography mapped to Cream (#FDFBD4) */
+    --text-primary: #FDFBD4;
+    --text-secondary: rgba(253, 251, 212, 0.8);
+    --text-muted: rgba(193, 191, 255, 0.65);
+
+    --border-glass: rgba(193, 191, 255, 0.22);
+    --border-glass-bright: rgba(207, 109, 252, 0.55);
+    --border-amber: rgba(189, 185, 106, 0.45);
 
     /* Typography */
     --font-headline: 'Fraunces', Georgia, serif;
@@ -46,7 +56,7 @@
     --radius-full: 9999px;
 
     /* Transitions & Blur */
-    --blur-glass: blur(18px);
+    --blur-glass: blur(20px);
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -117,7 +127,8 @@ body {
     left: 15%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, var(--cyan-electric) 0%, transparent 70%);
+    background: radial-gradient(circle, #CF6DFC 0%, transparent 70%);
+    opacity: 0.4;
 }
 
 .glow-amber {
@@ -125,8 +136,9 @@ body {
     right: 10%;
     width: 700px;
     height: 700px;
-    background: radial-gradient(circle, var(--amber-gold) 0%, transparent 70%);
+    background: radial-gradient(circle, #BDB96A 0%, transparent 70%);
     animation-delay: -7s;
+    opacity: 0.35;
 }
 
 .glow-indigo {
@@ -134,8 +146,9 @@ body {
     left: -10%;
     width: 550px;
     height: 550px;
-    background: radial-gradient(circle, var(--indigo-nebula) 0%, transparent 70%);
+    background: radial-gradient(circle, #C1BFFF 0%, transparent 70%);
     animation-delay: -14s;
+    opacity: 0.45;
 }
 
 .grid-overlay {
@@ -2094,13 +2107,13 @@ body {
 
 /* Floating Main Dashboard Panel Card */
 .floating-dashboard-panel {
-    background: linear-gradient(145deg, rgba(12, 22, 45, 0.75), rgba(7, 14, 29, 0.85));
+    background: linear-gradient(145deg, rgba(20, 15, 42, 0.82), rgba(10, 8, 24, 0.92));
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(193, 191, 255, 0.25);
     border-radius: 24px;
     padding: 2.25rem 2.5rem;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(253, 251, 212, 0.35);
     position: relative;
     overflow: hidden;
     margin-bottom: 2.5rem;
@@ -2118,14 +2131,16 @@ body {
     font-size: 1.8rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #ffffff;
+    background: linear-gradient(135deg, #FDFBD4 30%, #C1BFFF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     text-transform: uppercase;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.35);
+    filter: drop-shadow(0 0 15px rgba(193, 191, 255, 0.4));
     margin-bottom: 0.25rem;
 }
 .dash-time-stamp {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(253, 251, 212, 0.7);
     font-family: var(--font-telemetry);
 }
 .dash-header-actions {
@@ -2163,11 +2178,13 @@ body {
 
 /* Left Temperature Block */
 .dash-temp-value {
-    font-size: 5rem;
+    font-size: 5.2rem;
     font-weight: 800;
     line-height: 1;
-    color: #ffffff;
-    text-shadow: 0 0 35px rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, #FDFBD4 20%, #C1BFFF 60%, #CF6DFC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 35px rgba(207, 109, 252, 0.5));
     letter-spacing: -0.03em;
 }
 .dash-temp-value .unit {
@@ -2180,10 +2197,10 @@ body {
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: 0.12em;
-    color: #ffffff;
+    color: #FDFBD4;
     margin-top: 0.5rem;
     text-transform: uppercase;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 12px rgba(207, 109, 252, 0.5);
 }
 .dash-feels-like {
     font-size: 0.85rem;

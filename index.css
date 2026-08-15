@@ -9,39 +9,36 @@
    0. DESIGN TOKENS & ROOT VARIABLES
    -------------------------------------------------------------------------- */
 :root {
-    /* Dreamy & Whimsical Color System Palette Tokens */
-    --color-cream: #FDFBD4;
-    --color-muted-gold: #BDB96A;
-    --color-lavender: #C1BFFF;
-    --color-vibrant-purple: #CF6DFC;
+    /* Premium elegant palette */
+    --color-cream: #F4F7FB;
+    --color-muted-gold: #F3B66D;
+    --color-lavender: #B9C5FF;
+    --color-vibrant-purple: #8C7BFF;
 
-    /* Base System Overrides */
-    --bg-deep-space: #0c0919;
-    --bg-card-glass: rgba(193, 191, 255, 0.08);
-    --bg-card-glass-hover: rgba(207, 109, 252, 0.16);
-    --bg-input-glass: rgba(12, 9, 26, 0.75);
+    /* Base system overrides */
+    --bg-deep-space: #071827;
+    --bg-deep-space-alt: #0f1d2e;
+    --bg-card-glass: rgba(15, 29, 46, 0.62);
+    --bg-card-glass-hover: rgba(108, 146, 255, 0.18);
+    --bg-input-glass: rgba(8, 17, 29, 0.76);
 
-    /* Electric Cyan mapped to Vibrant Purple (#CF6DFC) */
-    --cyan-electric: #CF6DFC;
-    --cyan-glow: rgba(207, 109, 252, 0.45);
-    --cyan-dim: rgba(207, 109, 252, 0.15);
+    --cyan-electric: #73f0d3;
+    --cyan-glow: rgba(115, 240, 211, 0.46);
+    --cyan-dim: rgba(115, 240, 211, 0.12);
 
-    /* Amber Gold mapped to Muted Sage Gold (#BDB96A) */
-    --amber-gold: #BDB96A;
-    --amber-glow: rgba(189, 185, 106, 0.45);
-    --amber-dim: rgba(189, 185, 106, 0.15);
+    --amber-gold: #f7b86d;
+    --amber-glow: rgba(247, 184, 109, 0.42);
+    --amber-dim: rgba(247, 184, 109, 0.12);
 
-    /* Indigo Nebula mapped to Soft Lavender (#C1BFFF) */
-    --indigo-nebula: #C1BFFF;
+    --indigo-nebula: #8fa7ff;
 
-    /* Typography mapped to Cream (#FDFBD4) */
-    --text-primary: #FDFBD4;
-    --text-secondary: rgba(253, 251, 212, 0.8);
-    --text-muted: rgba(193, 191, 255, 0.65);
+    --text-primary: #edf6ff;
+    --text-secondary: rgba(237, 246, 255, 0.78);
+    --text-muted: rgba(186, 203, 226, 0.7);
 
-    --border-glass: rgba(193, 191, 255, 0.22);
-    --border-glass-bright: rgba(207, 109, 252, 0.55);
-    --border-amber: rgba(189, 185, 106, 0.45);
+    --border-glass: rgba(143, 167, 255, 0.22);
+    --border-glass-bright: rgba(115, 240, 211, 0.6);
+    --border-amber: rgba(247, 184, 109, 0.46);
 
     /* Typography */
     --font-headline: 'Fraunces', Georgia, serif;
@@ -76,7 +73,10 @@ html {
 }
 
 body {
-    background-color: var(--bg-deep-space);
+    background:
+        radial-gradient(circle at top left, rgba(124, 220, 255, 0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(143, 167, 255, 0.15), transparent 26%),
+        linear-gradient(180deg, #061722 0%, #0b1728 32%, #091a2b 100%);
     color: var(--text-primary);
     font-family: var(--font-body);
     min-height: 100vh;
@@ -127,8 +127,8 @@ body {
     left: 15%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, #CF6DFC 0%, transparent 70%);
-    opacity: 0.4;
+    background: radial-gradient(circle, rgba(115, 240, 211, 0.8) 0%, transparent 70%);
+    opacity: 0.42;
 }
 
 .glow-amber {
@@ -136,9 +136,9 @@ body {
     right: 10%;
     width: 700px;
     height: 700px;
-    background: radial-gradient(circle, #BDB96A 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(247, 184, 109, 0.8) 0%, transparent 70%);
     animation-delay: -7s;
-    opacity: 0.35;
+    opacity: 0.28;
 }
 
 .glow-indigo {
@@ -146,9 +146,9 @@ body {
     left: -10%;
     width: 550px;
     height: 550px;
-    background: radial-gradient(circle, #C1BFFF 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(143, 167, 255, 0.8) 0%, transparent 70%);
     animation-delay: -14s;
-    opacity: 0.45;
+    opacity: 0.38;
 }
 
 .grid-overlay {
@@ -171,12 +171,12 @@ body {
    3. REUSABLE GLASSMORPHIC CARDS & UTILITIES
    -------------------------------------------------------------------------- */
 .glass-card {
-    background: var(--bg-card-glass);
+    background: linear-gradient(180deg, rgba(18, 30, 47, 0.72), rgba(11, 19, 31, 0.74));
     backdrop-filter: var(--blur-glass);
     -webkit-backdrop-filter: var(--blur-glass);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-lg);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 18px 45px rgba(2, 6, 18, 0.45), inset 0 1px 0 rgba(255,255,255,0.06);
     transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
     position: relative;
     overflow: hidden;
@@ -200,7 +200,7 @@ body {
 
 .glass-card:hover {
     border-color: var(--border-glass-bright);
-    box-shadow: 0 12px 40px 0 rgba(84, 234, 210, 0.15), inset 0 0 20px rgba(84, 234, 210, 0.05);
+    box-shadow: 0 16px 45px rgba(28, 56, 92, 0.38), 0 0 24px rgba(115, 240, 211, 0.12), inset 0 0 18px rgba(143, 167, 255, 0.06);
 }
 
 /* 3D Tilt Card Interactive Effect */
@@ -271,8 +271,8 @@ body {
 
 /* Buttons */
 .btn-cyan {
-    background: linear-gradient(135deg, var(--cyan-electric) 0%, #2dd4bf 100%);
-    color: var(--bg-deep-space);
+    background: linear-gradient(135deg, var(--cyan-electric) 0%, #5cc7ff 100%);
+    color: #081b2a;
     font-family: var(--font-telemetry);
     font-weight: 700;
     font-size: 0.85rem;
@@ -285,12 +285,12 @@ body {
     align-items: center;
     gap: 8px;
     transition: var(--transition-fast);
-    box-shadow: 0 0 20px var(--cyan-glow);
+    box-shadow: 0 10px 25px rgba(115, 240, 211, 0.25);
 }
 
 .btn-cyan:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(84, 234, 210, 0.6);
+    box-shadow: 0 14px 32px rgba(115, 240, 211, 0.38);
 }
 
 .btn-icon-glass {

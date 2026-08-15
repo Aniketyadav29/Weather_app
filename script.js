@@ -264,23 +264,10 @@
             console.warn('Tier 1 Vercel proxy offline or failed, falling back to Tier 2...', err);
         }
 
-        // Tier 2: Direct WeatherAPI Key Fallback
-        try {
-            const apiKey = '8d76d41be2ad4fb88ef211322241604'; // Client fallback key
-            const searchQuery = resolvedCityName || query;
-            const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(searchQuery)}&days=3&aqi=yes`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.location && data.current) {
-                    state.activeTier = 'TIER 2 (DIRECT WEATHERAPI)';
-                    processWeatherData(normalizeWeatherAPIData(data));
-                    updatePipelineStatus('PIPELINE: TIER 2 ACTIVE (DIRECT API)', 'cyan');
-                    return;
-                }
-            }
-        } catch (err) {
-            console.warn('Tier 2 Direct WeatherAPI failed, falling back to Tier 3...', err);
-        }
+        // Tier 2: Direct WeatherAPI is intentionally disabled in the browser build.
+        // The local app server hosts the required /api/weather route and keeps the
+        // runtime stable without exposing a private API key in client code.
+        console.warn('Tier 2 direct WeatherAPI fallback disabled in browser build; using zero-key local/Open-Meteo path instead.');
 
         // Tier 3: Open-Meteo Zero-Key API Fallback
         try {
@@ -1261,14 +1248,6 @@
             { title: 'Chowmahalla Palace', category: 'ROYAL PALACE', dist: '2.8 km', img: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=600&q=80', extract: 'Palace of the Nizams of Hyderabad state, restored to seat Mughal and Persian royal grandeur.' },
             { title: 'Salar Jung Museum', category: 'NATIONAL MUSEUM', dist: '1.9 km', img: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=600&q=80', extract: 'One of the three National Museums of India, housing the art collection of the Salar Jung family.' }
         ],
-        'shimla': [
-            { title: 'The Ridge & Mall Road Shimla', category: 'HERITAGE PROMENADE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Large open space in the heart of Shimla, center of cultural activities and colonial architecture.' },
-            { title: 'Jakhu Temple & Statue', category: 'HILLTOP TEMPLE', dist: '1.8 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Ancient temple dedicated to Lord Hanuman at Jakhu Hill, Shimla\'s highest peak at 2,455 meters.' },
-            { title: 'Kalka-Shimla Toy Train', category: 'UNESCO RAILWAY', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Mountain railway in North-Western India built in 1903, a UNESCO World Heritage Site.' },
-            { title: 'Christ Church Shimla', category: 'HISTORIC CHURCH', dist: '0.6 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Second oldest church in North India, built in Neo-Gothic style in 1857 on The Ridge.' },
-            { title: 'Green Valley Shimla', category: 'SCENIC VISTA', dist: '7.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Mountain valley surrounded by dense pine and deodar forests along National Highway 22.' },
-            { title: 'Kufri Adventure Park', category: 'ALPINE RESORT', dist: '14.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Tiny hill station near Shimla famous for winter sports, trekking trails, and Himalayan wildlife.' }
-        ],
         'manali': [
             { title: 'Solang Valley', category: 'ADVENTURE VALLEY', dist: '13.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Side valley at the top of the Kullu Valley, famous for paragliding, skiing, and snow ropeways.' },
             { title: 'Hadimba Devi Temple', category: 'HISTORIC SHRINE', dist: '2.1 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Ancient cave temple dedicated to Hidimbi Devi, constructed in 1553 by Maharaja Bahadur Singh.' },
@@ -1324,6 +1303,70 @@
             { title: 'Royal Botanic Garden Sydney', category: 'BOTANIC GARDEN', dist: '1.4 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: '30-hectare heritage-listed botanical garden situated on Sydney Harbour, established in 1816.' },
             { title: 'Taronga Zoo Sydney', category: 'HARBOURSIDE ZOO', dist: '4.5 km', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80', extract: 'City zoo located on the shores of Sydney Harbour in Mosman, housing over 4,000 animals.' },
             { title: 'Darling Harbour', category: 'WATERFRONT PRECINCT', dist: '2.2 km', img: 'https://images.unsplash.com/photo-1524293568345-75d62c3664f7?auto=format&fit=crop&w=600&q=80', extract: 'Large pedestrian and recreation precinct on the western outskirts of Sydney central business district.' }
+        ],
+        'nainital': [
+            { title: 'Naini Lake', category: 'SCENIC LAKE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1506700269561-c58c19c2ede4?auto=format&fit=crop&w=600&q=80', extract: 'The famous emerald pear-shaped lake at the heart of Nainital, surrounded by lush hills. Ideal for boating and lakeside walks.' },
+            { title: 'Naina Devi Temple', category: 'SACRED TEMPLE', dist: '0.8 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Hindu temple on the northern shore of Naini Lake, dedicated to Goddess Naina Devi. One of the 51 Shakti Peethas.' },
+            { title: 'Snow View Point', category: 'SCENIC VIEWPOINT', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Popular hilltop viewpoint at 2,270 m offering breathtaking panoramic views of the Himalayan peaks and Nainital valley.' },
+            { title: 'Tiffin Top (Dorothy\'s Seat)', category: 'HILLTOP VISTA', dist: '4.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Scenic hilltop at 2,290 m with sweeping views of Kumaon hills and the Himalayan range, accessible by horse or trek.' },
+            { title: 'Raj Bhawan (Governor\'s House)', category: 'HERITAGE ESTATE', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80', extract: 'Colonial-era official residence of the Governor of Uttarakhand, set within a 220-acre forested estate with a golf course.' },
+            { title: 'Nainital Zoo (G.B. Pant High Altitude Zoo)', category: 'WILDLIFE SANCTUARY', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&q=80', extract: 'High-altitude zoo at 2,100 m housing Snow Leopards, Himalayan Black Bears, Wolves, and Siberian Tigers.' }
+        ],
+        'nainī tāl': [
+            { title: 'Naini Lake', category: 'SCENIC LAKE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1506700269561-c58c19c2ede4?auto=format&fit=crop&w=600&q=80', extract: 'The famous emerald pear-shaped lake at the heart of Nainital, surrounded by lush hills. Ideal for boating and lakeside walks.' },
+            { title: 'Naina Devi Temple', category: 'SACRED TEMPLE', dist: '0.8 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Hindu temple on the northern shore of Naini Lake, dedicated to Goddess Naina Devi. One of the 51 Shakti Peethas.' },
+            { title: 'Snow View Point', category: 'SCENIC VIEWPOINT', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Popular hilltop viewpoint at 2,270 m offering breathtaking panoramic views of the Himalayan peaks and Nainital valley.' },
+            { title: 'Tiffin Top (Dorothy\'s Seat)', category: 'HILLTOP VISTA', dist: '4.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Scenic hilltop at 2,290 m with sweeping views of Kumaon hills and the Himalayan range, accessible by horse or trek.' },
+            { title: 'Raj Bhawan (Governor\'s House)', category: 'HERITAGE ESTATE', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80', extract: 'Colonial-era official residence of the Governor of Uttarakhand, set within a 220-acre forested estate with a golf course.' },
+            { title: 'Nainital Zoo (G.B. Pant High Altitude Zoo)', category: 'WILDLIFE SANCTUARY', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&q=80', extract: 'High-altitude zoo at 2,100 m housing Snow Leopards, Himalayan Black Bears, Wolves, and Siberian Tigers.' }
+        ],
+        'mussoorie': [
+            { title: 'Gun Hill', category: 'SCENIC VIEWPOINT', dist: '1.8 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Second highest peak of Mussoorie offering panoramic Himalayan views and a ropeway ride experience.' },
+            { title: 'Kempty Falls', category: 'SCENIC WATERFALL', dist: '15.0 km', img: 'https://images.unsplash.com/photo-1517456793572-1d8efd6dc135?auto=format&fit=crop&w=600&q=80', extract: 'Beautiful multi-tiered waterfall surrounded by mountains, a popular natural attraction near Mussoorie.' },
+            { title: 'Mall Road Mussoorie', category: 'HERITAGE PROMENADE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80', extract: 'Main road running through the heart of Mussoorie, lined with shops, eateries, and colonial-era buildings.' },
+            { title: 'Lal Tibba', category: 'HIGHEST PEAK', dist: '6.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Highest point in Mussoorie at 2,275 m, offering stunning views of Kedarnath, Badrinath, and Bandarpunch peaks.' },
+            { title: 'Camel\'s Back Road', category: 'SCENIC WALK', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1506700269561-c58c19c2ede4?auto=format&fit=crop&w=600&q=80', extract: 'A beautiful 3 km winding road in Mussoorie named after a rock formation resembling a camel\'s hump.' },
+            { title: 'George Everest House', category: 'HERITAGE SITE', dist: '6.5 km', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80', extract: 'Historic home and laboratory of Sir George Everest, the surveyor after whom Mount Everest was named.' }
+        ],
+        'rishikesh': [
+            { title: 'Laxman Jhula', category: 'HERITAGE BRIDGE', dist: '2.1 km', img: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=600&q=80', extract: 'Famous iron suspension bridge over the Ganges, legendary as the spot where Laxman crossed the river on a jute rope.' },
+            { title: 'Triveni Ghat', category: 'SACRED GHAT', dist: '0.8 km', img: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=600&q=80', extract: 'The most sacred and largest ghat in Rishikesh where three holy rivers meet, famous for evening Ganga Aarti.' },
+            { title: 'Beatles Ashram (Chaurasi Kutia)', category: 'HERITAGE ASHRAM', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Abandoned ashram where the Beatles stayed in 1968, now a forest campus with vibrant street art murals.' },
+            { title: 'Ram Jhula', category: 'ICONIC BRIDGE', dist: '3.0 km', img: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=600&q=80', extract: 'Suspension bridge over the Ganges, connecting Sivananda Ashram and Swarg Ashram; popular pedestrian landmark.' },
+            { title: 'Neelkanth Mahadev Temple', category: 'SACRED TEMPLE', dist: '22.0 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Hindu temple dedicated to Lord Shiva at 1,330 m, amidst dense forests in the Pauri Garhwal region.' },
+            { title: 'Shivpuri Rafting Camp', category: 'ADVENTURE CAMP', dist: '15.0 km', img: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=600&q=80', extract: 'Premier whitewater river rafting starting point on the Ganges, offering Grade 3-4 rapids through lush forest gorges.' }
+        ],
+        'dehradun': [
+            { title: 'Robber\'s Cave (Guchhupani)', category: 'NATURAL CAVE', dist: '8.0 km', img: 'https://images.unsplash.com/photo-1517456793572-1d8efd6dc135?auto=format&fit=crop&w=600&q=80', extract: 'A natural river cave formation with a stream running through it, a popular picnic and trekking spot near Dehradun.' },
+            { title: 'Sahastradhara', category: 'SCENIC WATERFALL', dist: '11.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Sulphur spring waterfall area known for its therapeutic properties and lush natural surroundings.' },
+            { title: 'Mindrolling Monastery', category: 'BUDDHIST MONASTERY', dist: '6.0 km', img: 'https://images.unsplash.com/photo-1542651048-52d3f98af9c4?auto=format&fit=crop&w=600&q=80', extract: 'One of the largest Buddhist centers in India, featuring a 185-feet high stupa decorated with murals and scriptures.' },
+            { title: 'Clock Tower (Ghanta Ghar)', category: 'HERITAGE LANDMARK', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1600100397608-f010e423b971?auto=format&fit=crop&w=600&q=80', extract: 'Six-faced clock tower built during the British era, located at the central hub of Dehradun city.' },
+            { title: 'Survey of India Museum', category: 'HERITAGE MUSEUM', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=600&q=80', extract: 'Museum at the headquarters of the Survey of India showcasing historic maps, instruments, and geographical artifacts.' },
+            { title: 'Forest Research Institute', category: 'COLONIAL HERITAGE', dist: '3.5 km', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80', extract: 'Magnificent Greco-Roman architectural campus built in 1929, housing museums dedicated to timber and forest ecology.' }
+        ],
+        'dharamsala': [
+            { title: 'Namgyal Monastery (Dalai Lama Temple)', category: 'TIBETAN MONASTERY', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1542651048-52d3f98af9c4?auto=format&fit=crop&w=600&q=80', extract: 'Official monastery of the Dalai Lama and the largest Tibetan Buddhist institution outside Tibet.' },
+            { title: 'Dal Lake Dharamsala', category: 'SCENIC LAKE', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1506700269561-c58c19c2ede4?auto=format&fit=crop&w=600&q=80', extract: 'Serene lake surrounded by cedar and oak trees offering beautiful reflections of the Dhauladhar mountains.' },
+            { title: 'Bhagsu Waterfall', category: 'NATURAL WATERFALL', dist: '4.0 km', img: 'https://images.unsplash.com/photo-1517456793572-1d8efd6dc135?auto=format&fit=crop&w=600&q=80', extract: 'Popular waterfall near McLeod Ganj, accessible via a scenic trek through the Bhagsu Nag village.' },
+            { title: 'Triund Trek', category: 'MOUNTAIN TREK', dist: '12.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'One of the most popular day treks in Himachal Pradesh, leading to a ridge at 2,875 m with panoramic Dhauladhar views.' },
+            { title: 'Tibet Museum', category: 'CULTURAL MUSEUM', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=600&q=80', extract: 'Museum documenting the history of Tibet and the life of Tibetan refugees since 1959.' },
+            { title: 'Kangra Fort', category: 'ANCIENT FORTRESS', dist: '20.0 km', img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=600&q=80', extract: 'One of the largest forts in the Himalayas, dating back to the 4th century AD, featuring ancient temples and ruins.' }
+        ],
+        'darjeeling': [
+            { title: 'Tiger Hill Sunrise Point', category: 'SCENIC SUMMIT', dist: '11.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Highest peak near Darjeeling at 2,590 m, famous for spectacular sunrise views over Kanchenjunga and Mount Everest.' },
+            { title: 'Darjeeling Himalayan Railway (Toy Train)', category: 'UNESCO RAILWAY', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'UNESCO World Heritage mountain railway built in 1881, winding through tea gardens and misty hillsides.' },
+            { title: 'Padmaja Naidu Himalayan Zoological Park', category: 'HIGHLAND ZOO', dist: '3.0 km', img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&q=80', extract: 'High-altitude zoo famous for its Snow Leopard and Red Panda conservation breeding programs.' },
+            { title: 'Batasia Loop', category: 'ENGINEERING WONDER', dist: '5.0 km', img: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80', extract: 'Spiral railway loop built in 1919 to reduce the gradient of the Darjeeling Himalayan Railway, with a war memorial garden.' },
+            { title: 'Rock Garden & Ganga Maya Park', category: 'TERRACED GARDEN', dist: '10.0 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: 'Beautiful terraced garden with waterfalls cascading over rocks, surrounded by tea gardens and forest.' },
+            { title: 'Happy Valley Tea Estate', category: 'HERITAGE TEA GARDEN', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: 'One of the oldest tea estates in Darjeeling established in 1854, offering factory tours and tea tasting sessions.' }
+        ],
+        'shimla': [
+            { title: 'The Ridge & Mall Road Shimla', category: 'HERITAGE PROMENADE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Large open space in the heart of Shimla, center of cultural activities and colonial architecture.' },
+            { title: 'Jakhu Temple & Statue', category: 'HILLTOP TEMPLE', dist: '1.8 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Ancient temple dedicated to Lord Hanuman at Jakhu Hill, Shimla\'s highest peak at 2,455 meters.' },
+            { title: 'Kalka-Shimla Toy Train', category: 'UNESCO RAILWAY', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Mountain railway in North-Western India built in 1903, a UNESCO World Heritage Site.' },
+            { title: 'Christ Church Shimla', category: 'HISTORIC CHURCH', dist: '0.6 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Second oldest church in North India, built in Neo-Gothic style in 1857 on The Ridge.' },
+            { title: 'Green Valley Shimla', category: 'SCENIC VISTA', dist: '7.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Mountain valley surrounded by dense pine and deodar forests along National Highway 22.' },
+            { title: 'Kufri Adventure Park', category: 'ALPINE RESORT', dist: '14.0 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Tiny hill station near Shimla famous for winter sports, trekking trails, and Himalayan wildlife.' }
         ]
     };
 
@@ -1344,7 +1387,18 @@
         'kashi': 'varanasi',
         'madras': 'chennai',
         'pondicherry': 'puducherry',
-        'vizag': 'visakhapatnam'
+        'vizag': 'visakhapatnam',
+        'naini tal': 'nainital',
+        'naini taal': 'nainital',
+        'nainī tāl': 'nainital',
+        'nainitaal': 'nainital',
+        'mcleod ganj': 'dharamsala',
+        'mcleodganj': 'dharamsala',
+        'dharamshala': 'dharamsala',
+        'doon': 'dehradun',
+        'dehra dun': 'dehradun',
+        'hardwar': 'haridwar',
+        'hrishikesh': 'rishikesh'
     };
 
     async function fetchWikipediaPlaces(cityName, lat, lon) {
@@ -1409,13 +1463,20 @@
             }
 
             const combinedTitles = Array.from(new Set([...validGeoTitles, ...searchTitles]));
-            const metaFilter = /^(list of|history of|culture of|geography of|economy of|demographics of|timeline of|politics of|outline of|tourist attractions in|climate of|transport in|geology of)/i;
+            const metaFilter = /^(list of|history of|culture of|geography of|economy of|demographics of|timeline of|politics of|outline of|climate of|transport in|geology of)/i;
             
+            // Split city name into words for partial matching (e.g. "naini tal" -> ["naini", "tal"])
+            const cityWords = cleanCity.split(/\s+/).filter(w => w.length > 2);
+
             const finalTitles = [];
             for (const t of combinedTitles) {
-                if (t.toLowerCase() === cleanCity) continue;
+                const tl = t.toLowerCase();
+                if (tl === cleanCity) continue;
                 if (metaFilter.test(t)) continue;
-                if (validGeoTitles.includes(t) || t.toLowerCase().includes(cleanCity)) {
+                // Accept if it's a geo hit, contains full city name, or contains any meaningful city word
+                const isGeoHit = validGeoTitles.includes(t);
+                const containsCity = tl.includes(cleanCity) || cityWords.some(w => tl.includes(w));
+                if (isGeoHit || containsCity) {
                     finalTitles.push(t);
                 }
             }
@@ -1526,73 +1587,19 @@
 
         let rawCity = (cityName || '').split(',')[0].trim();
         if (!rawCity || /^[\d\.\,\-\s]+$/.test(rawCity)) {
-            rawCity = 'Regional';
+            rawCity = 'this region';
         }
-        const displayCity = rawCity;
 
-        const samplePlaces = [
-            {
-                title: `${displayCity} National Heritage & Cultural Museum`,
-                extract: `Renowned cultural attraction in ${displayCity} featuring regional heritage exhibits, historical collections, and guided walking tours.`,
-                dist: '2.4 km',
-                img: 'https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                title: `${displayCity} Botanical Garden & Lake Park`,
-                extract: `Sprawling scenic garden and peaceful waterfront park in ${displayCity}, ideal for sightseeing, nature walks, and relaxation.`,
-                dist: '3.8 km',
-                img: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                title: `${displayCity} Historic Citadel & Observatory Peak`,
-                extract: `High-altitude architectural landmark in ${displayCity} offering panoramic vistas, historic monuments, and atmospheric observation decks.`,
-                dist: '5.1 km',
-                img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                title: `${displayCity} Imperial Plaza & Grand Promenade`,
-                extract: `Central architectural plaza in ${displayCity} featuring civic fountains, historic monuments, and luxury walking avenues.`,
-                dist: '1.2 km',
-                img: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                title: `${displayCity} Waterfront Bay & Marina Viewpoint`,
-                extract: `Scenic coastal promenade and marina precinct in ${displayCity}, offering waterfront dining and panoramic ocean views.`,
-                dist: '4.5 km',
-                img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                title: `${displayCity} Royal Performing Arts & Concert Hall`,
-                extract: `World-class performance center in ${displayCity} hosting musical concerts, theater plays, and cultural events.`,
-                dist: '2.9 km',
-                img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80'
-            }
-        ];
-
-        samplePlaces.forEach(p => {
-            const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.title)}`;
-            const card = document.createElement('div');
-            card.className = 'glass-card tilt-card bento-card';
-            card.innerHTML = `
-                <div>
-                    <div class="bento-img-wrapper">
-                        <img src="${p.img}" alt="${p.title}" class="bento-img" loading="lazy" />
-                        <span class="bento-cat-tag"><i class="fa-solid fa-compass"></i> EXPLORER POINT</span>
-                    </div>
-                    <h3 class="bento-title">${p.title}</h3>
-                    <p class="bento-extract">${p.extract}</p>
-                </div>
-                <div class="bento-footer-row">
-                    <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist} away</span>
-                    <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                        🗺️ Directions
-                    </a>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-
-        initTiltEffect();
+        // Show a helpful message instead of fake places
+        const mapsUrl = `https://www.google.com/maps/search/tourist+attractions+near+${encodeURIComponent(rawCity)}`;
+        grid.innerHTML = `
+            <div class="bento-no-data glass-card" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2.5rem 2rem; text-align: center; border-radius: 1rem;">
+                <i class="fa-solid fa-map-location-dot" style="font-size: 2.5rem; color: var(--accent, #54ead2); opacity: 0.8;"></i>
+                <h3 style="font-size: 1.2rem; margin: 0; color: #e0e6f0;">Discovering Places in <span style="color: var(--accent, #54ead2);">${rawCity}</span></h3>
+                <p style="font-size: 0.92rem; color: #8fa3b8; max-width: 480px; margin: 0; line-height: 1.6;">Real landmark data for this location is not yet available in our curated database, and the live Wikipedia engine did not return verified results. Explore attractions on Google Maps instead.</p>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">🗺️ Explore on Google Maps</a>
+            </div>
+        `;
     }
 
     // ==========================================================================

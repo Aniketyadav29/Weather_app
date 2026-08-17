@@ -1113,6 +1113,8 @@
     // ==========================================================================
     // 10. THREE.JS 3D HOLOGRAPHIC STAGE
     // ==========================================================================
+    // 10. THREE.JS 3D HOLOGRAPHIC STAGE (WITH DRAG ROTATION & GPS BEACON PIN)
+    // ==========================================================================
     function init3DStage() {
         const container = document.getElementById('canvas-container');
         if (!container || typeof THREE === 'undefined') return;
@@ -1130,60 +1132,145 @@
         state.threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(state.threeRenderer.domElement);
 
-        // 3D Wireframe Holographic Globe
+        // 3D Wireframe Holographic Globe Group
+        state.threeGlobeGroup = new THREE.Group();
+        state.threeScene.add(state.threeGlobeGroup);
+
+        // Outer Wireframe Globe Mesh
         const geometry = new THREE.IcosahedronGeometry(2, 4);
         const material = new THREE.MeshBasicMaterial({
             color: 0x54ead2,
             wireframe: true,
             transparent: true,
-            opacity: 0.4
+            opacity: 0.45
         });
         state.threeGlobe = new THREE.Mesh(geometry, material);
-        state.threeScene.add(state.threeGlobe);
+        state.threeGlobeGroup.add(state.threeGlobe);
 
-        // Inner Core Glow Sphere
-        const coreGeo = new THREE.SphereGeometry(1.5, 32, 32);
+        // Inner Core Dark Glow Sphere
+        const coreGeo = new THREE.SphereGeometry(1.9, 32, 32);
         const coreMat = new THREE.MeshBasicMaterial({
-            color: 0x070d19,
+            color: 0x061424,
             transparent: true,
             opacity: 0.95
         });
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-        state.threeScene.add(coreMesh);
+        state.threeGlobeGroup.add(coreMesh);
+
+        // Outer Atmosphere Cyan Glow Shell
+        const atmosGeo = new THREE.SphereGeometry(2.18, 32, 32);
+        const atmosMat = new THREE.MeshBasicMaterial({
+            color: 0x73f0d3,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide
+        });
+        const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
+        state.threeGlobeGroup.add(atmosMesh);
+
+        // Dual Spinning 3D Satellite Orbital Rings
+        const ringGeo1 = new THREE.TorusGeometry(2.5, 0.015, 16, 100);
+        const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x54ead2, transparent: true, opacity: 0.6 });
+        state.threeRing1 = new THREE.Mesh(ringGeo1, ringMat1);
+        state.threeRing1.rotation.x = Math.PI / 3;
+        state.threeGlobeGroup.add(state.threeRing1);
+
+        const ringGeo2 = new THREE.TorusGeometry(2.8, 0.012, 16, 100);
+        const ringMat2 = new THREE.MeshBasicMaterial({ color: 0xf7b86d, transparent: true, opacity: 0.45 });
+        state.threeRing2 = new THREE.Mesh(ringGeo2, ringMat2);
+        state.threeRing2.rotation.y = Math.PI / 4;
+        state.threeGlobeGroup.add(state.threeRing2);
+
+        // 3D GPS Location Beacon Pin on Globe Surface
+        const pinGroup = new THREE.Group();
+        const pinConeGeo = new THREE.ConeGeometry(0.1, 0.35, 12);
+        pinConeGeo.rotateX(Math.PI);
+        const pinConeMat = new THREE.MeshBasicMaterial({ color: 0xf7b86d });
+        const pinMesh = new THREE.Mesh(pinConeGeo, pinConeMat);
+        pinMesh.position.y = 0.18;
+        pinGroup.add(pinMesh);
+
+        const pinDotGeo = new THREE.SphereGeometry(0.08, 16, 16);
+        const pinDotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const pinDot = new THREE.Mesh(pinDotGeo, pinDotMat);
+        pinDot.position.y = 0.35;
+        pinGroup.add(pinDot);
+
+        const ringPulseGeo = new THREE.RingGeometry(0.05, 0.18, 32);
+        const ringPulseMat = new THREE.MeshBasicMaterial({ color: 0x54ead2, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+        const ringPulse = new THREE.Mesh(ringPulseGeo, ringPulseMat);
+        ringPulse.rotation.x = Math.PI / 2;
+        pinGroup.add(ringPulse);
+
+        state.threeTargetPin = pinGroup;
+        state.threeGlobeGroup.add(state.threeTargetPin);
+
+        // Default Pin position for Tokyo
+        update3DGlobePin(35.6762, 139.6503);
 
         // Orbiting Particle Halo
         const particleGeo = new THREE.BufferGeometry();
-        const count = 300;
+        const count = 350;
         const posArray = new Float32Array(count * 3);
 
         for (let i = 0; i < count * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 8;
+            posArray[i] = (Math.random() - 0.5) * 9;
         }
 
         particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         const particleMat = new THREE.PointsMaterial({
-            size: 0.04,
-            color: 0xf8bd58,
+            size: 0.045,
+            color: 0x73f0d3,
             transparent: true,
-            opacity: 0.8
+            opacity: 0.75
         });
         state.threeParticles = new THREE.Points(particleGeo, particleMat);
         state.threeScene.add(state.threeParticles);
 
-        // Animation Loop â€” pauses when tab hidden
+        // Interactive 3D Mouse Drag & Touch Globe Spinning Controls
+        let isDragging = false;
+        let prevMousePos = { x: 0, y: 0 };
+        const canvasEl = state.threeRenderer.domElement;
+
+        canvasEl.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            prevMousePos = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDragging || !state.threeGlobeGroup) return;
+            const deltaX = e.clientX - prevMousePos.x;
+            const deltaY = e.clientY - prevMousePos.y;
+            state.threeGlobeGroup.rotation.y += deltaX * 0.008;
+            state.threeGlobeGroup.rotation.x += deltaY * 0.008;
+            prevMousePos = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('pointerup', () => { isDragging = false; });
+        window.addEventListener('pointercancel', () => { isDragging = false; });
+
+        // Animation Loop — pauses when tab hidden
+        let pulseTime = 0;
         function animate() {
             if (state.threeAnimPaused || document.hidden) {
                 requestAnimationFrame(animate);
                 return;
             }
             requestAnimationFrame(animate);
-            if (state.threeGlobe) {
-                state.threeGlobe.rotation.y += 0.004;
-                state.threeGlobe.rotation.x += 0.002;
+            if (!isDragging && state.threeGlobeGroup) {
+                state.threeGlobeGroup.rotation.y += 0.003;
             }
-            if (state.threeParticles) {
-                state.threeParticles.rotation.y -= 0.002;
+            if (state.threeRing1) state.threeRing1.rotation.z += 0.006;
+            if (state.threeRing2) state.threeRing2.rotation.z -= 0.005;
+            if (state.threeParticles) state.threeParticles.rotation.y -= 0.0015;
+
+            // Pulsing target beacon effect
+            pulseTime += 0.05;
+            if (ringPulse) {
+                const s = 1 + Math.sin(pulseTime) * 0.3;
+                ringPulse.scale.set(s, s, s);
             }
+
             state.threeRenderer.render(state.threeScene, state.threeCamera);
         }
         animate();
@@ -1192,9 +1279,9 @@
         const resetBtn = document.getElementById('reset-cam');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (state.threeGlobe) {
-                    state.threeGlobe.rotation.x = 0;
-                    state.threeGlobe.rotation.y = 0;
+                if (state.threeGlobeGroup) {
+                    state.threeGlobeGroup.rotation.x = 0;
+                    state.threeGlobeGroup.rotation.y = 0;
                 }
             });
         }
@@ -1206,7 +1293,29 @@
                 if (state.threeGlobe) state.threeGlobe.material.wireframe = state.wireframeMode;
             });
         }
-        // Note: resize is handled by the consolidated handler in initVolumetricCanvas
+    }
+
+    // Helper: Position 3D Location Beacon Pin on Globe Surface & Rotate Globe towards City
+    function update3DGlobePin(lat, lon) {
+        if (!state.threeTargetPin || !state.threeGlobeGroup) return;
+
+        const radius = 2.02;
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = (radius * Math.sin(phi) * Math.sin(theta));
+        const y = (radius * Math.cos(phi));
+
+        state.threeTargetPin.position.set(x, y, z);
+        // Orient pin to point outward perpendicular to globe surface
+        state.threeTargetPin.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(x, y, z).normalize());
+
+        // Smoothly orient globe so pin rotates toward front of camera
+        const targetRotY = -theta + Math.PI / 2;
+        const targetRotX = phi - Math.PI / 2;
+        state.threeGlobeGroup.rotation.y = targetRotY;
+        state.threeGlobeGroup.rotation.x = targetRotX * 0.5;
     }
 
     // ==========================================================================
@@ -1248,14 +1357,15 @@
     }
 
     function updateGISMap(lat, lon, name) {
+        update3DGlobePin(lat, lon);
         if (!state.map) return;
 
         state.map.setView([lat, lon], 11);
         if (state.marker) state.marker.setLatLng([lat, lon]);
 
         // Update Spatial Coordinate Badges
-        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`);
-        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`);
+        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}\u00B0 ${lat >= 0 ? 'N' : 'S'}`);
+        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}\u00B0 ${lon >= 0 ? 'E' : 'W'}`);
         setElText('gis-alt', `${Math.round(lat * 2 + 10)} m MSL`);
         setElText('gis-mgrs', `54S UE ${Math.abs(Math.round(lat * 100))} ${Math.abs(Math.round(lon * 100))}`);
     }
@@ -1697,13 +1807,11 @@
                     <p class="bento-extract">${p.extract}</p>
                 </div>
                 <div class="bento-footer-row">
-                    <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist}</span>
-                    <div style="display:flex;gap:0.5rem;">
-                        <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="background:rgba(84,234,210,0.12);">
-                            ðŸ“– Read More
+                    <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist}</span                        <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="background:rgba(84,234,210,0.12);">
+                            \u{1F4D6} Read More
                         </a>
                         <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                            🗺️ Directions
+                            🗺️  Directions
                         </a>
                     </div>
                 </div>
@@ -1731,13 +1839,13 @@
                 <i class="fa-solid fa-map-location-dot" style="font-size: 2.5rem; color: var(--accent, #54ead2); opacity: 0.8;"></i>
                 <h3 style="font-size: 1.2rem; margin: 0; color: #e0e6f0;">Discovering Places in <span style="color: var(--accent, #54ead2);">${rawCity}</span></h3>
                 <p style="font-size: 0.92rem; color: #8fa3b8; max-width: 480px; margin: 0; line-height: 1.6;">Real landmark data for this location is not yet available in our curated database, and the live Wikipedia engine did not return verified results. Explore attractions on Google Maps instead.</p>
-                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">🗺️ Explore on Google Maps</a>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">🗺️ Explore on Google Maps</a>
             </div>
         `;
     }
 
     // ==========================================================================
-    // 13. HIGH-PERFORMANCE 3D TILT EFFECT (RAF-THROTTLED + will-change on demand)
+    // 13. HIGH-PERFORMANCE 3D TILT EFFECT (DYNAMIC SPECULAR LIGHT + RAF PARALLAX)
     // ==========================================================================
     function initTiltEffect() {
         const tiltCards = document.querySelectorAll('.tilt-card:not([data-tilt-bound]), .mockup-header-nav:not([data-tilt-bound])');
@@ -1757,13 +1865,15 @@
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -5;
-                const rotateY = ((x - centerX) / centerX) * 5;
+                const rotateX = ((y - centerY) / centerY) * -6;
+                const rotateY = ((x - centerX) / centerX) * 6;
 
                 if (!ticking) {
                     ticking = true;
                     requestAnimationFrame(() => {
-                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(4px)`;
+                        card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+                        card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(8px)`;
                         ticking = false;
                     });
                 }

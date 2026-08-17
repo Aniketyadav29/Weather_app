@@ -214,11 +214,54 @@ body {
 .tilt-card {
     transform-style: preserve-3d;
     perspective: 1000px;
+    transition: transform 0.15s ease-out, border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 /* JS adds/removes this class on mouseenter/mouseleave */
 .tilt-card.is-tilting {
     will-change: transform;
+}
+
+/* 3D Parallax Depth Layers for Card Contents */
+.tilt-card .dash-temp-value,
+.tilt-card .temp-big,
+.tilt-card .bento-title,
+.tilt-card .g-title,
+.tilt-card .radial-center-content,
+.tilt-card .lunar-visual-container {
+    transform: translateZ(28px);
+    transition: transform 0.2s ease-out;
+}
+
+.tilt-card .condition-badge,
+.tilt-card .g-badge,
+.tilt-card .bento-cat-tag,
+.tilt-card .card-header-tag {
+    transform: translateZ(38px);
+    transition: transform 0.2s ease-out;
+}
+
+.tilt-card .dash-metrics-grid,
+.tilt-card .gauge-footer-metrics,
+.tilt-card .bento-footer-row {
+    transform: translateZ(16px);
+    transition: transform 0.2s ease-out;
+}
+
+/* 3D Specular Light Overlay for Glass Cards */
+.glass-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(115, 240, 211, 0.12), transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.glass-card:hover::after {
+    opacity: 1;
 }
 
 /* Typography Utility Classes */
@@ -2750,3 +2793,50 @@ body {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(30px); }
 }
+
+/* --------------------------------------------------------------------------
+   3D VOLUMETRIC STAGE & FLOATING 3D WEATHER ANIMATIONS
+   -------------------------------------------------------------------------- */
+.dash-3d-icon-stage {
+    perspective: 1200px;
+    transform-style: preserve-3d;
+}
+
+.weather-3d-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+}
+
+.w-3d-icon {
+    width: 140px;
+    height: 140px;
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.45));
+    animation: float3D 6s ease-in-out infinite alternate;
+    transform-style: preserve-3d;
+}
+
+@keyframes float3D {
+    0% {
+        transform: translateY(0px) rotateX(4deg) rotateY(-6deg) translateZ(10px);
+    }
+    50% {
+        transform: translateY(-12px) rotateX(-4deg) rotateY(6deg) translateZ(25px);
+    }
+    100% {
+        transform: translateY(4px) rotateX(6deg) rotateY(-4deg) translateZ(15px);
+    }
+}
+
+.three-canvas-container canvas {
+    cursor: grab;
+}
+
+.three-canvas-container canvas:active {
+    cursor: grabbing;
+}
+

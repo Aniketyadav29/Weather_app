@@ -12,27 +12,29 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png">
 
-    <!-- Google Fonts: Fraunces (Headlines), JetBrains Mono (Telemetry), Inter (Body) -->
+    <!-- Preconnect to CDN hosts for faster resource fetching -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+
+    <!-- Google Fonts: Optimized weight subset + display=swap to prevent FOIT -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
 
     <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Leaflet GIS Map CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Leaflet GIS Map CSS (non-blocking) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" /></noscript>
 
-    <!-- Main Stylesheet -->
+    <!-- Main Stylesheet (preloaded for instant apply) -->
+    <link rel="preload" href="index.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="index.css"></noscript>
     <link rel="stylesheet" href="index.css">
-
-    <!-- Three.js & Leaflet JS CDNs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="script.js" defer></script>
 </head>
 
 <body>
@@ -179,40 +181,9 @@
                     <div class="forecast-section-title">EXTENDED FORECAST</div>
                     <div class="extended-forecast-grid" id="extended-forecast-grid">
                         <!-- Dynamic 5-Day Forecast Glass Cards Injected via JS -->
-                        <div class="forecast-card-glass">
-                            <span class="fc-day">WED</span>
-                            <div class="fc-icon-wrapper">
-                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
-                            </div>
-                            <span class="fc-temp">22° / 16°C</span>
-                        </div>
-                        <div class="forecast-card-glass">
-                            <span class="fc-day">THU</span>
-                            <div class="fc-icon-wrapper">
-                                <i class="fa-solid fa-cloud-showers-heavy 3d-glow"></i>
-                            </div>
-                            <span class="fc-temp">19° / 14°C</span>
-                        </div>
-                        <div class="forecast-card-glass">
-                            <span class="fc-day">FRI</span>
-                            <div class="fc-icon-wrapper">
-                                <i class="fa-solid fa-sun 3d-glow"></i>
-                            </div>
-                            <span class="fc-temp">23° / 17°C</span>
-                        </div>
-                        <div class="forecast-card-glass">
-                            <span class="fc-day">SAT</span>
-                            <div class="fc-icon-wrapper">
-                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
-                            </div>
-                            <span class="fc-temp">23° / 17°C</span>
-                        </div>
-                        <div class="forecast-card-glass">
-                            <span class="fc-day">SUN</span>
-                            <div class="fc-icon-wrapper">
-                                <i class="fa-solid fa-cloud-sun 3d-glow"></i>
-                            </div>
-                            <span class="fc-temp">22° / 15°C</span>
+                        <div class="forecast-loading-state">
+                            <i class="fa-solid fa-cloud-sun fa-spin" style="font-size:1.5rem;color:var(--accent,#54ead2);opacity:0.7;"></i>
+                            <span style="color:#8fa3b8;font-size:0.85rem;">Loading forecast...</span>
                         </div>
                     </div>
                 </div>
@@ -741,6 +712,10 @@
                     <i class="fa-solid fa-compass-drafting f-logo"></i>
                     <span class="f-name">ATMOS — FIELD WEATHER INSTRUMENT</span>
                 </div>
+                <div class="footer-clock-row">
+                    <span class="footer-clock-item"><i class="fa-solid fa-clock"></i> UTC: <span id="utc-time">--:--:--</span></span>
+                    <span class="footer-clock-item"><i class="fa-solid fa-location-dot"></i> LOCAL: <span id="local-time">--:--:--</span></span>
+                </div>
                 <p class="footer-credit">
                     Designed & Developed by <strong>Aniket Yadav | BBD</strong>
                 </p>
@@ -759,6 +734,14 @@
             </div>
         </footer>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Heavy JS Libraries: moved here (end of body) to prevent render-blocking -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+    <script src="script.js" defer></script>
 
 </body>
 

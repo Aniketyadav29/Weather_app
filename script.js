@@ -1,5 +1,5 @@
-/* ==========================================================================
-   ATMOS — FIELD WEATHER INSTRUMENT
+﻿/* ==========================================================================
+   ATMOS â€” FIELD WEATHER INSTRUMENT
    MODULAR ENGINE PIPELINE & 3D TELEMETRY CONTROLLER
    Pipeline: Vercel Proxy -> Direct API -> Open-Meteo -> Deterministic Fallback
    ========================================================================== */
@@ -27,8 +27,27 @@
         threeRenderer: null,
         threeGlobe: null,
         threeParticles: null,
-        wireframeMode: true
+        wireframeMode: true,
+        threeAnimPaused: false,
+        wikiAbortController: null   // for cancelling in-flight Wikipedia requests
     };
+
+    // ==========================================================================
+    // TOAST NOTIFICATION SYSTEM (replaces blocking alert())
+    // ==========================================================================
+    function showToast(message, type = 'warn', durationMs = 4000) {
+        const container = document.getElementById('toast-container');
+        if (!container) { console.warn(message); return; }
+        const icons = { warn: 'fa-triangle-exclamation', error: 'fa-circle-xmark', success: 'fa-circle-check' };
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.warn}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-hide');
+            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        }, durationMs);
+    }
 
     // ==========================================================================
     // 1. INITIALIZATION & DOM LOADED
@@ -47,7 +66,7 @@
     });
 
     // ==========================================================================
-    // 2. LIVE CLOCKS & SYSTEM TIME
+    // 2. LIVE CLOCKS â€” aligned setTimeout to avoid visible drift
     // ==========================================================================
     function initClocks() {
         const utcEl = document.getElementById('utc-time');
@@ -57,10 +76,12 @@
             const now = new Date();
             if (utcEl) utcEl.textContent = now.toUTCString().split(' ')[4] + ' UTC';
             if (localEl) localEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            // Schedule next tick aligned to the next whole second boundary
+            const msToNextSec = 1000 - now.getMilliseconds();
+            setTimeout(updateClocks, msToNextSec);
         }
 
         updateClocks();
-        setInterval(updateClocks, 1000);
     }
 
     // ==========================================================================
@@ -119,12 +140,12 @@
                         },
                         (err) => {
                             console.warn('Geolocation error:', err);
-                            alert('Unable to access GPS location. Using default city telemetry.');
+                            showToast('Unable to access GPS location. Using search instead.', 'warn');
                             geoBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
                         }
                     );
                 } else {
-                    alert('Geolocation is not supported by your browser.');
+                    showToast('Geolocation is not supported by your browser.', 'error');
                 }
             });
         }
@@ -142,7 +163,7 @@
 
         // Hide Autocomplete when clicking outside
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-box-wrapper')) hideDropdown();
+            if (!e.target.closest('.nav-search-wrapper')) hideDropdown();
         });
 
         function hideDropdown() {
@@ -150,14 +171,20 @@
         }
     }
 
-    // Fetch Autocomplete Suggestions
+    // Fetch Autocomplete Suggestions (with AbortController to cancel stale requests)
+    let _autocompleteAbort = null;
     async function fetchAutocomplete(query) {
         const dropdown = document.getElementById('autocomplete-results');
         if (!dropdown) return;
 
+        // Cancel any previous in-flight autocomplete request
+        if (_autocompleteAbort) _autocompleteAbort.abort();
+        _autocompleteAbort = new AbortController();
+        const signal = _autocompleteAbort.signal;
+
         try {
             // Try Open-Meteo Geocoding
-            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
+            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`, { signal });
             if (res.ok) {
                 const data = await res.json();
                 if (data.results && data.results.length > 0) {
@@ -172,9 +199,9 @@
                 }
             }
         } catch (err) {
-            console.warn('Autocomplete fetch error:', err);
+            if (err.name !== 'AbortError') console.warn('Autocomplete fetch error:', err);
         }
-        dropdown.classList.add('hidden');
+        if (!signal.aborted) dropdown.classList.add('hidden');
     }
 
     function renderAutocompleteItems(items) {
@@ -188,7 +215,7 @@
             div.className = 'auto-item';
             div.innerHTML = `
                 <span><strong>${item.name}</strong> ${item.region ? ', ' + item.region : ''} (${item.country})</span>
-                <span class="cyan-text">${item.lat.toFixed(2)}°, ${item.lon.toFixed(2)}°</span>
+                <span class="cyan-text">${item.lat.toFixed(2)}Â°, ${item.lon.toFixed(2)}Â°</span>
             `;
             div.addEventListener('click', () => {
                 const searchInput = document.getElementById('city-search');
@@ -562,15 +589,27 @@
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
+        // Shared debounced resize handler (all resize work batched here)
+        function handleResize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initStars();
+            initClouds();
+            // Also resize Three.js if available
+            const container = document.getElementById('canvas-container');
+            if (container && state.threeCamera && state.threeRenderer) {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                state.threeCamera.aspect = w / h;
+                state.threeCamera.updateProjectionMatrix();
+                state.threeRenderer.setSize(w, h);
+            }
+        }
+
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-                initStars();
-                initClouds();
-            }, 200);
+            resizeTimer = setTimeout(handleResize, 200);
         });
 
         let stars = [];
@@ -606,10 +645,19 @@
         initStars();
         initClouds();
 
+        // Pause/resume canvas & glow-orb animations on tab visibility
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                document.body.classList.add('animations-paused');
+            } else {
+                document.body.classList.remove('animations-paused');
+            }
+        });
+
         let animFrameId;
         function renderBackground() {
             if (document.hidden) {
-                animFrameId = setTimeout(() => requestAnimationFrame(renderBackground), 250);
+                animFrameId = setTimeout(() => requestAnimationFrame(renderBackground), 500);
                 return;
             }
             animFrameId = requestAnimationFrame(renderBackground);
@@ -656,6 +704,8 @@
         state.weatherData = data;
         state.currentLocation = data.location;
 
+        // Batch all DOM updates in one rAF to avoid layout thrashing
+        requestAnimationFrame(() => {
         // Location & Time Display (Mockup matching)
         const cityTitle = `${data.location.name.toUpperCase()}${data.location.country ? ', ' + data.location.country.toUpperCase() : ''}`;
         setElText('loc-display-name', cityTitle);
@@ -667,22 +717,28 @@
         const dateStr = now.toLocaleDateString('en-US', dateOptions);
         setElText('dash-date-time', `${timeStr}, ${dateStr}`);
 
-        setElText('loc-coords', `🌐 ${data.location.lat.toFixed(4)}° N, ${data.location.lon.toFixed(4)}° E`);
+        const latDir = data.location.lat >= 0 ? 'N' : 'S';
+        const lonDir = data.location.lon >= 0 ? 'E' : 'W';
+        setElText('loc-coords', `ðŸŒ ${Math.abs(data.location.lat).toFixed(4)}Â° ${latDir}, ${Math.abs(data.location.lon).toFixed(4)}Â° ${lonDir}`);
 
         // Main Temperature & Condition Block
         const tempEl = document.getElementById('temp-big');
-        if (tempEl) tempEl.innerHTML = `${data.tempC}°<span class="unit">C</span>`;
+        if (tempEl) tempEl.innerHTML = `${data.tempC}Â°<span class="unit">C</span>`;
         setElText('condition-badge', (data.condition || 'PARTLY CLOUDY').toUpperCase());
-        setElText('feels-like-display', `FEELS LIKE: ${data.feelsLikeC}°C`);
+        setElText('feels-like-display', `FEELS LIKE: ${data.feelsLikeC}Â°C`);
 
         // Hero Dashboard Metrics Grid (Right Column)
-        setElText('metric-feels', `${data.feelsLikeC}°C`);
+        setElText('metric-feels', `${data.feelsLikeC}Â°C`);
         setElText('metric-wind', `${data.windSpeedKmh} km/h ${data.windDir}`);
         setElText('metric-humidity', `${data.humidityPct}%`);
-        setElText('metric-rain', `${Math.round(data.precipMm * 10 || 5)}%`);
+        // Use actual daily rain chance from forecast if available, else estimate from precip
+        const rainChance = (data.forecastDays && data.forecastDays[0] && data.forecastDays[0].rainChance != null)
+            ? data.forecastDays[0].rainChance
+            : Math.round(data.precipMm > 0 ? Math.min(data.precipMm * 20, 95) : 5);
+        setElText('metric-rain', `${rainChance}%`);
         setElText('metric-pressure', `${data.pressureHpa} hPa`);
 
-        // Hero 3D Weather Stage Visual
+        // Hero 3D Weather Stage Visual (use cached SVG)
         const heroStage = document.getElementById('weather-3d-icon-container');
         if (heroStage) {
             heroStage.innerHTML = get3DWeatherIconSVG(data.condition);
@@ -705,6 +761,10 @@
 
         // Update Visitable Cultural Places Bento Grid
         fetchWikipediaPlaces(data.location.name, data.location.lat, data.location.lon);
+
+        // Confirm active pipeline tier in status badge
+        updatePipelineStatus(`${state.activeTier} â€” DATA LIVE`, state.activeTier.includes('TIER 1') || state.activeTier.includes('TIER 2') ? 'cyan' : 'amber');
+        }); // end requestAnimationFrame
     }
 
     function renderExtendedForecast(forecastDays) {
@@ -724,17 +784,21 @@
                 <div class="fc-icon-wrapper">
                     ${iconSvg}
                 </div>
-                <span class="fc-temp">${f.maxTempC}° / ${f.minTempC}°C</span>
+                <span class="fc-temp">${f.maxTempC}Â° / ${f.minTempC}Â°C</span>
             `;
             grid.appendChild(card);
         });
     }
 
+    // SVG Icon Cache â€” avoids regenerating identical SVG markup on every data update
+    const _svgIconCache = new Map();
     function get3DWeatherIconSVG(cond) {
         const text = (cond || '').toLowerCase();
+        if (_svgIconCache.has(text)) return _svgIconCache.get(text);
 
+        let result;
         if (text.includes('rain') || text.includes('drizzle') || text.includes('shower')) {
-            return `
+            result = `
                 <svg class="w-3d-icon" viewBox="0 0 64 64" fill="none">
                     <defs>
                         <linearGradient id="cloudGradR" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -753,7 +817,7 @@
                 </svg>
             `;
         } else if (text.includes('partly') || text.includes('scattered') || text.includes('cloud')) {
-            return `
+            result = `
                 <svg class="w-3d-icon" viewBox="0 0 64 64" fill="none">
                     <defs>
                         <radialGradient id="sunGradP" cx="40%" cy="40%" r="60%">
@@ -771,7 +835,7 @@
                 </svg>
             `;
         } else if (text.includes('thunder') || text.includes('storm')) {
-            return `
+            result = `
                 <svg class="w-3d-icon" viewBox="0 0 64 64" fill="none">
                     <defs>
                         <linearGradient id="cloudGradT" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -784,7 +848,7 @@
                 </svg>
             `;
         } else if (text.includes('snow') || text.includes('flurry')) {
-            return `
+            result = `
                 <svg class="w-3d-icon" viewBox="0 0 64 64" fill="none">
                     <defs>
                         <linearGradient id="cloudGradS" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -799,7 +863,7 @@
                 </svg>
             `;
         } else {
-            return `
+            result = `
                 <svg class="w-3d-icon" viewBox="0 0 64 64" fill="none">
                     <defs>
                         <radialGradient id="sunGradC" cx="45%" cy="45%" r="55%">
@@ -822,6 +886,8 @@
                 </svg>
             `;
         }
+        _svgIconCache.set(text, result);
+        return result;
     }
 
     function setElText(id, text) {
@@ -834,25 +900,31 @@
     // ==========================================================================
     function updateGauges(d) {
         // Gauge 1: Wind Rose Compass
-        setElText('wind-card-dir', `${d.windDir} (${d.windDegree}°)`);
+        setElText('wind-card-dir', `${d.windDir} (${d.windDegree}Â°)`);
         setElText('wind-speed', `${d.windSpeedKmh} km/h`);
         setElText('wind-gust', `${d.windGustKmh} km/h`);
         const needle = document.getElementById('compass-needle');
         if (needle) needle.style.transform = `rotate(${d.windDegree}deg)`;
 
         // Gauge 2: Barometer
+        const baroTrend = d.pressureHpa >= 1020 ? 'RISING' : d.pressureHpa <= 1009 ? 'FALLING' : 'STABLE';
+        setElText('baro-trend-tag', baroTrend);
         setElText('baro-val', d.pressureHpa);
         setElText('sea-press', `${d.pressureHpa} hPa`);
         const baroArc = document.getElementById('baro-arc-bar');
         if (baroArc) {
-            // Arc offset mapping (900-1050 hPa -> 301 offset range)
             const pct = Math.min(Math.max((d.pressureHpa - 950) / 100, 0), 1);
             baroArc.style.strokeDashoffset = 301 - (301 * pct * 0.75);
         }
+        // Atmosphere label
+        const atmLabel = d.pressureHpa >= 1013 ? 'High Pressure' : d.pressureHpa >= 1000 ? 'Standard' : 'Low Pressure';
+        setElText('atm-status', atmLabel);
 
         // Gauge 3: Humidity & Dew Point
+        const humStatus = d.humidityPct > 80 ? 'HUMID' : d.humidityPct > 60 ? 'COMFORT' : d.humidityPct > 40 ? 'DRY' : 'VERY DRY';
+        setElText('humidity-status', humStatus);
         setElText('humidity-val', d.humidityPct);
-        setElText('dew-point-card', `${d.dewPointC}°C`);
+        setElText('dew-point-card', `${d.dewPointC}Â°C`);
         setElText('vapor-press', `${(d.humidityPct * 0.03).toFixed(2)} kPa`);
         const humArc = document.getElementById('humidity-arc-bar');
         if (humArc) {
@@ -871,23 +943,46 @@
         }
 
         // Gauge 5: UV Index
+        const uvRating = d.uvIndex <= 2 ? 'LOW' : d.uvIndex <= 5 ? 'MODERATE' : d.uvIndex <= 7 ? 'HIGH' : d.uvIndex <= 10 ? 'VERY HIGH' : 'EXTREME';
+        setElText('uv-badge', uvRating);
+        const uvAdvice = d.uvIndex <= 2 ? 'No Protection Needed' : d.uvIndex <= 5 ? 'Protection Required Near Noon' : d.uvIndex <= 7 ? 'SPF 30+ Recommended' : d.uvIndex <= 10 ? 'SPF 50+ Essential' : 'Stay Indoors at Noon';
+        setElText('uv-advice', uvAdvice);
         setElText('uv-num-val', d.uvIndex.toFixed(1));
         const uvFill = document.getElementById('uv-fill-bar');
         if (uvFill) uvFill.style.width = `${Math.min((d.uvIndex / 12) * 100, 100)}%`;
-        setElText('solar-irradiance', `${Math.round(d.uvIndex * 95)} W/m²`);
+        setElText('solar-irradiance', `${Math.round(d.uvIndex * 95)} W/mÂ²`);
         setElText('uv-max-today', `${(d.uvIndex + 1.2).toFixed(1)} UV`);
 
-        // Gauge 6: Visibility
-        setElText('vis-val', d.visibilityKm);
-        setElText('horizon-dist', `${Math.round(d.visibilityKm * 1000).toLocaleString()} m`);
+        // Gauge 6: Visibility â€” use innerHTML to keep <span class="optics-unit">km</span>
+        const visEl = document.getElementById('vis-val');
+        if (visEl) visEl.innerHTML = `${d.visibilityKm} <span class="optics-unit">km</span>`;
+        const visStatus = d.visibilityKm >= 10 ? 'CLEAR' : d.visibilityKm >= 5 ? 'MODERATE' : d.visibilityKm >= 1 ? 'LOW VIS' : 'FOG';
+        setElText('vis-status', visStatus);
+        setElText('horizon-dist', `${Math.round(parseFloat(d.visibilityKm) * 1000).toLocaleString()} m`);
+        // Haze index based on visibility + humidity
+        const hazeVal = d.visibilityKm < 5 ? 'High' : d.visibilityKm < 8 ? 'Medium' : d.humidityPct > 70 ? 'Low-Med' : 'Low';
+        setElText('haze-index', hazeVal);
 
         // Gauge 7: Cloud Cover
+        const cloudBadgeText = d.cloudPct <= 10 ? 'CLEAR' : d.cloudPct <= 30 ? 'MOSTLY CLEAR' : d.cloudPct <= 60 ? 'PARTLY CLOUDY' : d.cloudPct <= 85 ? 'MOSTLY CLOUDY' : 'OVERCAST';
+        setElText('cloud-badge', cloudBadgeText);
         setElText('cloud-pct-val', `${d.cloudPct}%`);
-        setElText('cloud-base-val', `${Math.round((d.tempC - d.dewPointC) * 125)} m`);
+        const cloudBaseM = Math.max(Math.round((d.tempC - d.dewPointC) * 125), 100);
+        setElText('cloud-base-val', `${cloudBaseM.toLocaleString()} m`);
+        const cloudCeilingM = Math.round(cloudBaseM * 2.5 + (d.cloudPct * 15));
+        setElText('cloud-ceiling-val', `${cloudCeilingM.toLocaleString()} m`);
 
-        // Gauge 8: Thermal Comfort
-        setElText('heat-index-val', `${d.feelsLikeC.toFixed(1)}°C`);
-        setElText('wind-chill-val', `${(d.tempC - (d.windSpeedKmh * 0.2)).toFixed(1)}°C`);
+        // Gauge 8: Thermal Comfort / Heat Index
+        const heatIndex = d.feelsLikeC;
+        const thermalBadge = heatIndex < 10 ? 'COLD' : heatIndex < 18 ? 'COOL' : heatIndex < 27 ? 'OPTIMAL' : heatIndex < 32 ? 'WARM' : heatIndex < 40 ? 'HOT' : 'DANGER';
+        setElText('thermal-badge', thermalBadge);
+        setElText('heat-index-val', `${d.feelsLikeC.toFixed(1)}Â°C`);
+        const heatDesc = heatIndex < 10 ? 'Cold Stress Risk' : heatIndex < 18 ? 'Comfortable Cool' : heatIndex < 27 ? 'No Risk of Heat Stress' : heatIndex < 32 ? 'Caution: Fatigue Possible' : 'Heat Stress Caution';
+        setElText('heat-index-desc', heatDesc);
+        setElText('wind-chill-val', `${(d.tempC - (d.windSpeedKmh * 0.2)).toFixed(1)}Â°C`);
+        // Humidex: simplified formula
+        const humidex = Math.round(d.tempC + 0.5555 * (6.105 * Math.exp(17.27 * d.dewPointC / (237.7 + d.dewPointC)) - 10));
+        setElText('humidex-val', humidex > 0 ? humidex : d.feelsLikeC.toFixed(0));
     }
 
     // ==========================================================================
@@ -965,24 +1060,54 @@
         const marker = document.getElementById('sun-marker');
         if (!marker) return;
 
-        // Position Sun on Arc
+        // Parse time string: handles '06:42 AM', '18:45', or 'HH:MM' ISO suffix
+        function parseTimeToMins(str) {
+            if (!str) return null;
+            // Strip date prefix (ISO format like '2026-08-16T06:30')
+            const s = str.includes('T') ? str.split('T')[1] : str;
+            const ampmMatch = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+            if (!ampmMatch) return null;
+            let h = parseInt(ampmMatch[1], 10);
+            const m = parseInt(ampmMatch[2], 10);
+            const ampm = (ampmMatch[3] || '').toUpperCase();
+            if (ampm === 'PM' && h !== 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return h * 60 + m;
+        }
+
+        const srMins = parseTimeToMins(sunriseStr) ?? (5 * 60 + 42);
+        const ssMins = parseTimeToMins(sunsetStr) ?? (18 * 60 + 48);
+        const noonMins = Math.round((srMins + ssMins) / 2);
+
+        // Display solar noon
+        const noonH = Math.floor(noonMins / 60);
+        const noonM = noonMins % 60;
+        const noonAmpm = noonH >= 12 ? 'PM' : 'AM';
+        const noonH12 = noonH > 12 ? noonH - 12 : noonH === 0 ? 12 : noonH;
+        setElText('solar-noon-time', `${noonH12}:${String(noonM).padStart(2, '0')} ${noonAmpm}`);
+
         const now = new Date();
         const curMins = now.getHours() * 60 + now.getMinutes();
-
-        // Standard 6AM sunrise, 6PM sunset fallback calculation
-        const srMins = 5 * 60 + 42;
-        const ssMins = 18 * 60 + 48;
-
         let pct = (curMins - srMins) / (ssMins - srMins);
         pct = Math.max(0, Math.min(1, pct));
 
-        // SVG Arc curve equation (M 30,100 A 170,80 ... 370,100)
+        // SVG arc position: M 30,100 A 170,80 0 0,1 370,100
         const angle = Math.PI * (1 - pct);
         const x = 200 + 170 * Math.cos(angle);
         const y = 100 - 80 * Math.sin(angle);
-
         marker.setAttribute('transform', `translate(${x}, ${y})`);
-        setElText('solar-countdown', pct < 1 ? `Daylight Progress: ${Math.round(pct * 100)}%` : 'Night Phase Active');
+
+        const daylight = ssMins - srMins;
+        const remaining = ssMins - curMins;
+        if (pct <= 0) {
+            setElText('solar-countdown', 'Pre-Dawn â€” Night Phase');
+        } else if (pct >= 1) {
+            setElText('solar-countdown', 'Night Phase Active');
+        } else {
+            const remH = Math.floor(remaining / 60);
+            const remM = remaining % 60;
+            setElText('solar-countdown', `Daylight: ${Math.round(pct * 100)}% â€” ${remH}h ${remM}m remaining`);
+        }
     }
 
     // ==========================================================================
@@ -1045,8 +1170,12 @@
         state.threeParticles = new THREE.Points(particleGeo, particleMat);
         state.threeScene.add(state.threeParticles);
 
-        // Animation Loop
+        // Animation Loop â€” pauses when tab hidden
         function animate() {
+            if (state.threeAnimPaused || document.hidden) {
+                requestAnimationFrame(animate);
+                return;
+            }
             requestAnimationFrame(animate);
             if (state.threeGlobe) {
                 state.threeGlobe.rotation.y += 0.004;
@@ -1077,16 +1206,7 @@
                 if (state.threeGlobe) state.threeGlobe.material.wireframe = state.wireframeMode;
             });
         }
-
-        // Window Resize Handler
-        window.addEventListener('resize', () => {
-            if (!container) return;
-            const w = container.clientWidth;
-            const h = container.clientHeight;
-            state.threeCamera.aspect = w / h;
-            state.threeCamera.updateProjectionMatrix();
-            state.threeRenderer.setSize(w, h);
-        });
+        // Note: resize is handled by the consolidated handler in initVolumetricCanvas
     }
 
     // ==========================================================================
@@ -1134,8 +1254,8 @@
         if (state.marker) state.marker.setLatLng([lat, lon]);
 
         // Update Spatial Coordinate Badges
-        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`);
-        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`);
+        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}Â° ${lat >= 0 ? 'N' : 'S'}`);
+        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}Â° ${lon >= 0 ? 'E' : 'W'}`);
         setElText('gis-alt', `${Math.round(lat * 2 + 10)} m MSL`);
         setElText('gis-mgrs', `54S UE ${Math.abs(Math.round(lat * 100))} ${Math.abs(Math.round(lon * 100))}`);
     }
@@ -1155,10 +1275,10 @@
         'paris': [
             { title: 'Eiffel Tower', category: 'ICONIC TOWER', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Wrought-iron lattice tower on the Champ de Mars in Paris, constructed for the 1889 World\'s Fair.' },
             { title: 'Louvre Museum', category: 'NATIONAL ART MUSEUM', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'World\'s largest art museum and historic monument housing the Mona Lisa and Venus de Milo.' },
-            { title: 'Notre-Dame de Paris', category: 'GOTHIC CATHEDRAL', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80', extract: 'Medieval Catholic cathedral on the Île de la Cité, considered one of the finest examples of French Gothic architecture.' },
-            { title: 'Arc de Triomphe', category: 'TRIUMPHAL ARCH', dist: '4.2 km', img: 'https://images.unsplash.com/photo-1509299349698-ab22323ae692?auto=format&fit=crop&w=600&q=80', extract: 'Standing at the western end of the Champs-Élysées, honoring those who fought for France.' },
-            { title: 'Sacré-Cœur, Paris', category: 'BASILICA MONUMENT', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Roman Catholic church dedicated to the Sacred Heart of Jesus, sitting atop Montmartre hill.' },
-            { title: 'Musée d\'Orsay', category: 'IMPRESSIONIST MUSEUM', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'Museum on the left bank of the Seine housed in a Beaux-Arts railway station built between 1898 and 1900.' }
+            { title: 'Notre-Dame de Paris', category: 'GOTHIC CATHEDRAL', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80', extract: 'Medieval Catholic cathedral on the ÃŽle de la CitÃ©, considered one of the finest examples of French Gothic architecture.' },
+            { title: 'Arc de Triomphe', category: 'TRIUMPHAL ARCH', dist: '4.2 km', img: 'https://images.unsplash.com/photo-1509299349698-ab22323ae692?auto=format&fit=crop&w=600&q=80', extract: 'Standing at the western end of the Champs-Ã‰lysÃ©es, honoring those who fought for France.' },
+            { title: 'SacrÃ©-CÅ“ur, Paris', category: 'BASILICA MONUMENT', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Roman Catholic church dedicated to the Sacred Heart of Jesus, sitting atop Montmartre hill.' },
+            { title: 'MusÃ©e d\'Orsay', category: 'IMPRESSIONIST MUSEUM', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'Museum on the left bank of the Seine housed in a Beaux-Arts railway station built between 1898 and 1900.' }
         ],
         'dubai': [
             { title: 'Burj Khalifa', category: 'WORLD\'S TALLEST TOWER', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'World\'s tallest building at 828 meters, featuring observation decks, lounges, and fountains.' },
@@ -1173,7 +1293,7 @@
             { title: 'Qutub Minar', category: 'UNESCO MONUMENT', dist: '12.1 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: '73-metre tall minaret forming part of the Qutb complex, a UNESCO World Heritage Site in New Delhi.' },
             { title: 'India Gate', category: 'NATIONAL MEMORIAL', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1600100397608-f010e423b971?auto=format&fit=crop&w=600&q=80', extract: 'War memorial located astride the Rajpath, dedicated to 84,000 soldiers of the British Indian Army.' },
             { title: 'Humayun\'s Tomb', category: 'MUGHAL MAUSOLEUM', dist: '5.2 km', img: 'https://images.unsplash.com/photo-1592639296346-560c37a0f711?auto=format&fit=crop&w=600&q=80', extract: 'Tomb of the Mughal Emperor Humayun, commissioned by his first wife Empress Bega Begum in 1558.' },
-            { title: 'Lotus Temple', category: 'BAHÁ\'Í SANCTUARY', dist: '11.4 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Notable for its flowerlike shape, it has become a prominent attraction and spiritual landmark in Delhi.' },
+            { title: 'Lotus Temple', category: 'BAHÃ\'Ã SANCTUARY', dist: '11.4 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Notable for its flowerlike shape, it has become a prominent attraction and spiritual landmark in Delhi.' },
             { title: 'Swaminarayan Akshardham Temple', category: 'CULTURAL COMPLEX', dist: '8.6 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Spiritual-cultural campus displaying traditional Hindu and Indian culture, architecture, and spirituality.' }
         ],
         'mumbai': [
@@ -1189,7 +1309,7 @@
             { title: 'Agra Fort', category: 'MUGHAL FORTRESS', dist: '3.4 km', img: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=600&q=80', extract: 'Historical fort in the city of Agra, served as the main residence of the emperors of the Mughal Dynasty until 1638.' },
             { title: 'Fatehpur Sikri', category: 'HISTORIC ROYAL CITY', dist: '35.0 km', img: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=600&q=80', extract: 'City built by Mughal emperor Akbar in 1571, featuring Buland Darwaza and Jama Masjid.' },
             { title: 'Mehtab Bagh', category: 'RIVERFRONT GARDEN', dist: '2.8 km', img: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=600&q=80', extract: 'Charbagh complex lying north of the Taj Mahal complex and the Agra Fort on the opposite side of the Yamuna River.' },
-            { title: 'Tomb of I\'timād-ud-Daulah (Baby Taj)', category: 'HERITAGE MAUSOLEUM', dist: '4.5 km', img: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=600&q=80', extract: 'Mughal mausoleum in Agra often regarded as a draft of the Taj Mahal.' },
+            { title: 'Tomb of I\'timÄd-ud-Daulah (Baby Taj)', category: 'HERITAGE MAUSOLEUM', dist: '4.5 km', img: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=600&q=80', extract: 'Mughal mausoleum in Agra often regarded as a draft of the Taj Mahal.' },
             { title: 'Akbar\'s Tomb, Sikandra', category: 'MUGHAL MONUMENT', dist: '12.0 km', img: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=600&q=80', extract: 'Important Mughal architectural masterpiece, containing the mortal remains of the Emperor Akbar.' }
         ],
         'varanasi': [
@@ -1258,7 +1378,7 @@
         ],
         'tokyo': [
             { title: 'Tokyo Tower', category: 'OBSERVATION TOWER', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80', extract: 'Iconic communications and observation tower in the Shiba-koen district of Minato, Tokyo, Japan.' },
-            { title: 'Sensō-ji Temple', category: 'HISTORIC TEMPLE', dist: '4.8 km', img: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Buddhist temple located in Asakusa, Tokyo. It is Tokyo\'s oldest temple, founded in 645 AD.' },
+            { title: 'SensÅ-ji Temple', category: 'HISTORIC TEMPLE', dist: '4.8 km', img: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Buddhist temple located in Asakusa, Tokyo. It is Tokyo\'s oldest temple, founded in 645 AD.' },
             { title: 'Meiji Shrine', category: 'SHINTO SANCTUARY', dist: '2.1 km', img: 'https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=600&q=80', extract: 'Shinto shrine in Shibuya, Tokyo, dedicated to the deified spirits of Emperor Meiji and his consort.' },
             { title: 'Shinjuku Gyoen National Garden', category: 'IMPERIAL GARDEN', dist: '3.9 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: 'Large park and national garden in Shinjuku and Shibuya, featuring traditional Japanese, French, and English gardens.' },
             { title: 'Tokyo Skytree', category: 'OBSERVATION TOWER', dist: '7.1 km', img: 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?auto=format&fit=crop&w=600&q=80', extract: 'Broadcasting and observation tower in Sumida, Tokyo. It became the tallest structure in Japan in 2010.' },
@@ -1297,7 +1417,7 @@
             { title: 'Brooklyn Bridge', category: 'HISTORIC BRIDGE', dist: '5.8 km', img: 'https://images.unsplash.com/photo-1543716091-a840c05249ec?auto=format&fit=crop&w=600&q=80', extract: 'Hybrid cable-stayed/suspension bridge in New York City, connecting Manhattan and Brooklyn.' }
         ],
         'sydney': [
-            { title: 'Sydney Opera House', category: 'PERFORMING ARTS', dist: '1.1 km', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80', extract: 'Multi-venue performing arts centre in Sydney Harbour, designed by Danish architect Jørn Utzon.' },
+            { title: 'Sydney Opera House', category: 'PERFORMING ARTS', dist: '1.1 km', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80', extract: 'Multi-venue performing arts centre in Sydney Harbour, designed by Danish architect JÃ¸rn Utzon.' },
             { title: 'Sydney Harbour Bridge', category: 'ICONIC BRIDGE', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1524293568345-75d62c3664f7?auto=format&fit=crop&w=600&q=80', extract: 'Steel arch bridge across Sydney Harbour carrying rail, vehicular, bicycle, and pedestrian traffic.' },
             { title: 'Bondi Beach', category: 'COASTAL RESORT', dist: '7.8 km', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', extract: 'Famous beach and suburb in Sydney, Australia, known for its surf culture and coastal walks.' },
             { title: 'Royal Botanic Garden Sydney', category: 'BOTANIC GARDEN', dist: '1.4 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: '30-hectare heritage-listed botanical garden situated on Sydney Harbour, established in 1816.' },
@@ -1312,7 +1432,7 @@
             { title: 'Raj Bhawan (Governor\'s House)', category: 'HERITAGE ESTATE', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80', extract: 'Colonial-era official residence of the Governor of Uttarakhand, set within a 220-acre forested estate with a golf course.' },
             { title: 'Nainital Zoo (G.B. Pant High Altitude Zoo)', category: 'WILDLIFE SANCTUARY', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&q=80', extract: 'High-altitude zoo at 2,100 m housing Snow Leopards, Himalayan Black Bears, Wolves, and Siberian Tigers.' }
         ],
-        'nainī tāl': [
+        'nainÄ« tÄl': [
             { title: 'Naini Lake', category: 'SCENIC LAKE', dist: '0.5 km', img: 'https://images.unsplash.com/photo-1506700269561-c58c19c2ede4?auto=format&fit=crop&w=600&q=80', extract: 'The famous emerald pear-shaped lake at the heart of Nainital, surrounded by lush hills. Ideal for boating and lakeside walks.' },
             { title: 'Naina Devi Temple', category: 'SACRED TEMPLE', dist: '0.8 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Ancient Hindu temple on the northern shore of Naini Lake, dedicated to Goddess Naina Devi. One of the 51 Shakti Peethas.' },
             { title: 'Snow View Point', category: 'SCENIC VIEWPOINT', dist: '2.5 km', img: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=600&q=80', extract: 'Popular hilltop viewpoint at 2,270 m offering breathtaking panoramic views of the Himalayan peaks and Nainital valley.' },
@@ -1390,7 +1510,7 @@
         'vizag': 'visakhapatnam',
         'naini tal': 'nainital',
         'naini taal': 'nainital',
-        'nainī tāl': 'nainital',
+        'nainÄ« tÄl': 'nainital',
         'nainitaal': 'nainital',
         'mcleod ganj': 'dharamsala',
         'mcleodganj': 'dharamsala',
@@ -1405,10 +1525,17 @@
         const grid = document.getElementById('bento-places-grid');
         if (!grid) return;
 
+        // Cancel any previously in-flight Wikipedia request
+        if (state.wikiAbortController) {
+            state.wikiAbortController.abort();
+        }
+        state.wikiAbortController = new AbortController();
+        const signal = state.wikiAbortController.signal;
+
         grid.innerHTML = `
             <div class="bento-loading-state glass-card">
                 <i class="fa-solid fa-atom fa-spin loading-spin"></i>
-                <p>Retrieving authentic visitable places...<p>
+                <p>Retrieving authentic visitable places...</p>
             </div>
         `;
 
@@ -1431,7 +1558,7 @@
             return;
         }
 
-        // Check exact prefix match for multi-word city names (e.g. "san francisco, california" -> "san francisco")
+        // Check exact prefix match for multi-word city names
         for (const dbKey in CITY_LANDMARKS_DB) {
             if (cleanCity === dbKey || cleanCity.startsWith(dbKey)) {
                 renderCuratedBentoCards(CITY_LANDMARKS_DB[dbKey], cityName, lat, lon);
@@ -1443,7 +1570,7 @@
         try {
             // Geosearch anchored to Lat/Lon (20km radius)
             const geoUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=20000&gslimit=35&format=json&origin=*`;
-            const geoRes = await fetch(geoUrl);
+            const geoRes = await fetch(geoUrl, { signal });
             let geoHits = [];
             if (geoRes.ok) {
                 const geoData = await geoRes.json();
@@ -1455,7 +1582,7 @@
 
             // Targeted Landmark Search Query for the City
             const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanCity + ' landmarks tourist attractions')}&srlimit=15&format=json&origin=*`;
-            const searchRes = await fetch(searchUrl);
+            const searchRes = await fetch(searchUrl, { signal });
             let searchTitles = [];
             if (searchRes.ok) {
                 const searchData = await searchRes.json();
@@ -1487,7 +1614,7 @@
                 const wikiCardsData = [];
                 for (const title of selectedTitles) {
                     try {
-                        const sumRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+                        const sumRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { signal });
                         if (sumRes.ok) {
                             const sum = await sumRes.json();
                             if (sum.extract && sum.extract.length > 30 && sum.title) {
@@ -1496,7 +1623,8 @@
                                     extract: sum.extract,
                                     img: sum.thumbnail?.source || 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80',
                                     category: sum.description ? sum.description.toUpperCase() : 'CULTURAL LANDMARK',
-                                    dist: 'Local Area'
+                                    dist: 'Local Area',
+                                    wikiUrl: sum.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(sum.title)}`
                                 });
                             }
                         }
@@ -1511,7 +1639,7 @@
                 }
             }
         } catch (err) {
-            console.warn('Wikipedia Places API error:', err);
+            if (err.name !== 'AbortError') console.warn('Wikipedia Places API error:', err);
         }
 
         // 3. Fallback to Dynamic City Bento Cards if no specific landmarks found
@@ -1539,7 +1667,7 @@
                 <div class="bento-footer-row">
                     <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist} away</span>
                     <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                        🗺️ Directions
+                        ðŸ—ºï¸ Directions
                     </a>
                 </div>
             `;
@@ -1556,6 +1684,7 @@
 
         items.forEach(p => {
             const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.title + ', ' + cityName)}`;
+            const wikiUrl = p.wikiUrl || `https://en.wikipedia.org/wiki/${encodeURIComponent(p.title)}`;
             const card = document.createElement('div');
             card.className = 'glass-card tilt-card bento-card';
             card.innerHTML = `
@@ -1569,9 +1698,14 @@
                 </div>
                 <div class="bento-footer-row">
                     <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist}</span>
-                    <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                        🗺️ Directions
-                    </a>
+                    <div style="display:flex;gap:0.5rem;">
+                        <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="background:rgba(84,234,210,0.12);">
+                            ðŸ“– Read More
+                        </a>
+                        <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
+                            ðŸ—ºï¸ Directions
+                        </a>
+                    </div>
                 </div>
             `;
             grid.appendChild(card);
@@ -1597,13 +1731,13 @@
                 <i class="fa-solid fa-map-location-dot" style="font-size: 2.5rem; color: var(--accent, #54ead2); opacity: 0.8;"></i>
                 <h3 style="font-size: 1.2rem; margin: 0; color: #e0e6f0;">Discovering Places in <span style="color: var(--accent, #54ead2);">${rawCity}</span></h3>
                 <p style="font-size: 0.92rem; color: #8fa3b8; max-width: 480px; margin: 0; line-height: 1.6;">Real landmark data for this location is not yet available in our curated database, and the live Wikipedia engine did not return verified results. Explore attractions on Google Maps instead.</p>
-                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">🗺️ Explore on Google Maps</a>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">ðŸ—ºï¸ Explore on Google Maps</a>
             </div>
         `;
     }
 
     // ==========================================================================
-    // 13. HIGH-PERFORMANCE 3D TILT EFFECT (ZERO-THRASHTHROTTLED)
+    // 13. HIGH-PERFORMANCE 3D TILT EFFECT (RAF-THROTTLED + will-change on demand)
     // ==========================================================================
     function initTiltEffect() {
         const tiltCards = document.querySelectorAll('.tilt-card:not([data-tilt-bound]), .mockup-header-nav:not([data-tilt-bound])');
@@ -1614,6 +1748,7 @@
 
             card.addEventListener('mouseenter', () => {
                 rect = card.getBoundingClientRect();
+                card.classList.add('is-tilting'); // promote will-change only while active
             });
 
             card.addEventListener('mousemove', (e) => {
@@ -1636,6 +1771,7 @@
 
             card.addEventListener('mouseleave', () => {
                 rect = null;
+                card.classList.remove('is-tilting'); // de-promote will-change immediately
                 requestAnimationFrame(() => {
                     card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
                 });

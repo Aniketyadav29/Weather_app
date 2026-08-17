@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    ATMOS â€” FIELD WEATHER INSTRUMENT
    MODULAR ENGINE PIPELINE & 3D TELEMETRY CONTROLLER
    Pipeline: Vercel Proxy -> Direct API -> Open-Meteo -> Deterministic Fallback
@@ -215,7 +215,7 @@
             div.className = 'auto-item';
             div.innerHTML = `
                 <span><strong>${item.name}</strong> ${item.region ? ', ' + item.region : ''} (${item.country})</span>
-                <span class="cyan-text">${item.lat.toFixed(2)}Â°, ${item.lon.toFixed(2)}Â°</span>
+                <span class="cyan-text">${item.lat.toFixed(2)}°, ${item.lon.toFixed(2)}°</span>
             `;
             div.addEventListener('click', () => {
                 const searchInput = document.getElementById('city-search');
@@ -719,16 +719,16 @@
 
         const latDir = data.location.lat >= 0 ? 'N' : 'S';
         const lonDir = data.location.lon >= 0 ? 'E' : 'W';
-        setElText('loc-coords', `ðŸŒ ${Math.abs(data.location.lat).toFixed(4)}Â° ${latDir}, ${Math.abs(data.location.lon).toFixed(4)}Â° ${lonDir}`);
+        setElText('loc-coords', `🌐  ${Math.abs(data.location.lat).toFixed(4)}\u00B0 ${latDir}, ${Math.abs(data.location.lon).toFixed(4)}\u00B0 ${lonDir}`);
 
         // Main Temperature & Condition Block
         const tempEl = document.getElementById('temp-big');
-        if (tempEl) tempEl.innerHTML = `${data.tempC}Â°<span class="unit">C</span>`;
+        if (tempEl) tempEl.innerHTML = `${data.tempC}\u00B0<span class="unit">C</span>`;
         setElText('condition-badge', (data.condition || 'PARTLY CLOUDY').toUpperCase());
-        setElText('feels-like-display', `FEELS LIKE: ${data.feelsLikeC}Â°C`);
+        setElText('feels-like-display', `FEELS LIKE: ${data.feelsLikeC}\u00B0C`);
 
         // Hero Dashboard Metrics Grid (Right Column)
-        setElText('metric-feels', `${data.feelsLikeC}Â°C`);
+        setElText('metric-feels', `${data.feelsLikeC}\u00B0C`);
         setElText('metric-wind', `${data.windSpeedKmh} km/h ${data.windDir}`);
         setElText('metric-humidity', `${data.humidityPct}%`);
         // Use actual daily rain chance from forecast if available, else estimate from precip
@@ -763,7 +763,7 @@
         fetchWikipediaPlaces(data.location.name, data.location.lat, data.location.lon);
 
         // Confirm active pipeline tier in status badge
-        updatePipelineStatus(`${state.activeTier} â€” DATA LIVE`, state.activeTier.includes('TIER 1') || state.activeTier.includes('TIER 2') ? 'cyan' : 'amber');
+        updatePipelineStatus(`${state.activeTier} \u2014 DATA LIVE`, state.activeTier.includes('TIER 1') || state.activeTier.includes('TIER 2') ? 'cyan' : 'amber');
         }); // end requestAnimationFrame
     }
 
@@ -784,7 +784,7 @@
                 <div class="fc-icon-wrapper">
                     ${iconSvg}
                 </div>
-                <span class="fc-temp">${f.maxTempC}Â° / ${f.minTempC}Â°C</span>
+                <span class="fc-temp">${f.maxTempC}\u00B0 / ${f.minTempC}\u00B0C</span>
             `;
             grid.appendChild(card);
         });
@@ -900,7 +900,7 @@
     // ==========================================================================
     function updateGauges(d) {
         // Gauge 1: Wind Rose Compass
-        setElText('wind-card-dir', `${d.windDir} (${d.windDegree}Â°)`);
+        setElText('wind-card-dir', `${d.windDir} (${d.windDegree}\u00B0)`);
         setElText('wind-speed', `${d.windSpeedKmh} km/h`);
         setElText('wind-gust', `${d.windGustKmh} km/h`);
         const needle = document.getElementById('compass-needle');
@@ -924,7 +924,7 @@
         const humStatus = d.humidityPct > 80 ? 'HUMID' : d.humidityPct > 60 ? 'COMFORT' : d.humidityPct > 40 ? 'DRY' : 'VERY DRY';
         setElText('humidity-status', humStatus);
         setElText('humidity-val', d.humidityPct);
-        setElText('dew-point-card', `${d.dewPointC}Â°C`);
+        setElText('dew-point-card', `${d.dewPointC}\u00B0C`);
         setElText('vapor-press', `${(d.humidityPct * 0.03).toFixed(2)} kPa`);
         const humArc = document.getElementById('humidity-arc-bar');
         if (humArc) {
@@ -950,10 +950,10 @@
         setElText('uv-num-val', d.uvIndex.toFixed(1));
         const uvFill = document.getElementById('uv-fill-bar');
         if (uvFill) uvFill.style.width = `${Math.min((d.uvIndex / 12) * 100, 100)}%`;
-        setElText('solar-irradiance', `${Math.round(d.uvIndex * 95)} W/mÂ²`);
+        setElText('solar-irradiance', `${Math.round(d.uvIndex * 95)} W/m\u00B2`);
         setElText('uv-max-today', `${(d.uvIndex + 1.2).toFixed(1)} UV`);
 
-        // Gauge 6: Visibility â€” use innerHTML to keep <span class="optics-unit">km</span>
+        // Gauge 6: Visibility \u2014 use innerHTML to keep <span class="optics-unit">km</span>
         const visEl = document.getElementById('vis-val');
         if (visEl) visEl.innerHTML = `${d.visibilityKm} <span class="optics-unit">km</span>`;
         const visStatus = d.visibilityKm >= 10 ? 'CLEAR' : d.visibilityKm >= 5 ? 'MODERATE' : d.visibilityKm >= 1 ? 'LOW VIS' : 'FOG';
@@ -976,10 +976,10 @@
         const heatIndex = d.feelsLikeC;
         const thermalBadge = heatIndex < 10 ? 'COLD' : heatIndex < 18 ? 'COOL' : heatIndex < 27 ? 'OPTIMAL' : heatIndex < 32 ? 'WARM' : heatIndex < 40 ? 'HOT' : 'DANGER';
         setElText('thermal-badge', thermalBadge);
-        setElText('heat-index-val', `${d.feelsLikeC.toFixed(1)}Â°C`);
+        setElText('heat-index-val', `${d.feelsLikeC.toFixed(1)}\u00B0C`);
         const heatDesc = heatIndex < 10 ? 'Cold Stress Risk' : heatIndex < 18 ? 'Comfortable Cool' : heatIndex < 27 ? 'No Risk of Heat Stress' : heatIndex < 32 ? 'Caution: Fatigue Possible' : 'Heat Stress Caution';
         setElText('heat-index-desc', heatDesc);
-        setElText('wind-chill-val', `${(d.tempC - (d.windSpeedKmh * 0.2)).toFixed(1)}Â°C`);
+        setElText('wind-chill-val', `${(d.tempC - (d.windSpeedKmh * 0.2)).toFixed(1)}\u00B0C`);
         // Humidex: simplified formula
         const humidex = Math.round(d.tempC + 0.5555 * (6.105 * Math.exp(17.27 * d.dewPointC / (237.7 + d.dewPointC)) - 10));
         setElText('humidex-val', humidex > 0 ? humidex : d.feelsLikeC.toFixed(0));
@@ -1254,8 +1254,8 @@
         if (state.marker) state.marker.setLatLng([lat, lon]);
 
         // Update Spatial Coordinate Badges
-        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}Â° ${lat >= 0 ? 'N' : 'S'}`);
-        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}Â° ${lon >= 0 ? 'E' : 'W'}`);
+        setElText('gis-lat', `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`);
+        setElText('gis-lng', `${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`);
         setElText('gis-alt', `${Math.round(lat * 2 + 10)} m MSL`);
         setElText('gis-mgrs', `54S UE ${Math.abs(Math.round(lat * 100))} ${Math.abs(Math.round(lon * 100))}`);
     }
@@ -1275,10 +1275,10 @@
         'paris': [
             { title: 'Eiffel Tower', category: 'ICONIC TOWER', dist: '3.2 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Wrought-iron lattice tower on the Champ de Mars in Paris, constructed for the 1889 World\'s Fair.' },
             { title: 'Louvre Museum', category: 'NATIONAL ART MUSEUM', dist: '1.5 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'World\'s largest art museum and historic monument housing the Mona Lisa and Venus de Milo.' },
-            { title: 'Notre-Dame de Paris', category: 'GOTHIC CATHEDRAL', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80', extract: 'Medieval Catholic cathedral on the ÃŽle de la CitÃ©, considered one of the finest examples of French Gothic architecture.' },
-            { title: 'Arc de Triomphe', category: 'TRIUMPHAL ARCH', dist: '4.2 km', img: 'https://images.unsplash.com/photo-1509299349698-ab22323ae692?auto=format&fit=crop&w=600&q=80', extract: 'Standing at the western end of the Champs-Ã‰lysÃ©es, honoring those who fought for France.' },
-            { title: 'SacrÃ©-CÅ“ur, Paris', category: 'BASILICA MONUMENT', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Roman Catholic church dedicated to the Sacred Heart of Jesus, sitting atop Montmartre hill.' },
-            { title: 'MusÃ©e d\'Orsay', category: 'IMPRESSIONIST MUSEUM', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'Museum on the left bank of the Seine housed in a Beaux-Arts railway station built between 1898 and 1900.' }
+            { title: 'Notre-Dame de Paris', category: 'GOTHIC CATHEDRAL', dist: '1.2 km', img: 'https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80', extract: 'Medieval Catholic cathedral on the Žle de la Cit©, considered one of the finest examples of French Gothic architecture.' },
+            { title: 'Arc de Triomphe', category: 'TRIUMPHAL ARCH', dist: '4.2 km', img: 'https://images.unsplash.com/photo-1509299349698-ab22323ae692?auto=format&fit=crop&w=600&q=80', extract: 'Standing at the western end of the Champs-‰lys©es, honoring those who fought for France.' },
+            { title: 'Sacr©-CÅ“ur, Paris', category: 'BASILICA MONUMENT', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80', extract: 'Roman Catholic church dedicated to the Sacred Heart of Jesus, sitting atop Montmartre hill.' },
+            { title: 'Mus©e d\'Orsay', category: 'IMPRESSIONIST MUSEUM', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80', extract: 'Museum on the left bank of the Seine housed in a Beaux-Arts railway station built between 1898 and 1900.' }
         ],
         'dubai': [
             { title: 'Burj Khalifa', category: 'WORLD\'S TALLEST TOWER', dist: '1.0 km', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80', extract: 'World\'s tallest building at 828 meters, featuring observation decks, lounges, and fountains.' },
@@ -1293,7 +1293,7 @@
             { title: 'Qutub Minar', category: 'UNESCO MONUMENT', dist: '12.1 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: '73-metre tall minaret forming part of the Qutb complex, a UNESCO World Heritage Site in New Delhi.' },
             { title: 'India Gate', category: 'NATIONAL MEMORIAL', dist: '3.8 km', img: 'https://images.unsplash.com/photo-1600100397608-f010e423b971?auto=format&fit=crop&w=600&q=80', extract: 'War memorial located astride the Rajpath, dedicated to 84,000 soldiers of the British Indian Army.' },
             { title: 'Humayun\'s Tomb', category: 'MUGHAL MAUSOLEUM', dist: '5.2 km', img: 'https://images.unsplash.com/photo-1592639296346-560c37a0f711?auto=format&fit=crop&w=600&q=80', extract: 'Tomb of the Mughal Emperor Humayun, commissioned by his first wife Empress Bega Begum in 1558.' },
-            { title: 'Lotus Temple', category: 'BAHÃ\'Ã SANCTUARY', dist: '11.4 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Notable for its flowerlike shape, it has become a prominent attraction and spiritual landmark in Delhi.' },
+            { title: 'Lotus Temple', category: 'BAH\' SANCTUARY', dist: '11.4 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Notable for its flowerlike shape, it has become a prominent attraction and spiritual landmark in Delhi.' },
             { title: 'Swaminarayan Akshardham Temple', category: 'CULTURAL COMPLEX', dist: '8.6 km', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=600&q=80', extract: 'Spiritual-cultural campus displaying traditional Hindu and Indian culture, architecture, and spirituality.' }
         ],
         'mumbai': [
@@ -1417,7 +1417,7 @@
             { title: 'Brooklyn Bridge', category: 'HISTORIC BRIDGE', dist: '5.8 km', img: 'https://images.unsplash.com/photo-1543716091-a840c05249ec?auto=format&fit=crop&w=600&q=80', extract: 'Hybrid cable-stayed/suspension bridge in New York City, connecting Manhattan and Brooklyn.' }
         ],
         'sydney': [
-            { title: 'Sydney Opera House', category: 'PERFORMING ARTS', dist: '1.1 km', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80', extract: 'Multi-venue performing arts centre in Sydney Harbour, designed by Danish architect JÃ¸rn Utzon.' },
+            { title: 'Sydney Opera House', category: 'PERFORMING ARTS', dist: '1.1 km', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80', extract: 'Multi-venue performing arts centre in Sydney Harbour, designed by Danish architect J¸rn Utzon.' },
             { title: 'Sydney Harbour Bridge', category: 'ICONIC BRIDGE', dist: '2.0 km', img: 'https://images.unsplash.com/photo-1524293568345-75d62c3664f7?auto=format&fit=crop&w=600&q=80', extract: 'Steel arch bridge across Sydney Harbour carrying rail, vehicular, bicycle, and pedestrian traffic.' },
             { title: 'Bondi Beach', category: 'COASTAL RESORT', dist: '7.8 km', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', extract: 'Famous beach and suburb in Sydney, Australia, known for its surf culture and coastal walks.' },
             { title: 'Royal Botanic Garden Sydney', category: 'BOTANIC GARDEN', dist: '1.4 km', img: 'https://images.unsplash.com/photo-1528164344705-47542687990d?auto=format&fit=crop&w=600&q=80', extract: '30-hectare heritage-listed botanical garden situated on Sydney Harbour, established in 1816.' },
@@ -1667,7 +1667,7 @@
                 <div class="bento-footer-row">
                     <span class="bento-dist"><i class="fa-solid fa-location-arrow"></i> ${p.dist} away</span>
                     <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                        ðŸ—ºï¸ Directions
+                        🗺️ Directions
                     </a>
                 </div>
             `;
@@ -1703,7 +1703,7 @@
                             ðŸ“– Read More
                         </a>
                         <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions">
-                            ðŸ—ºï¸ Directions
+                            🗺️ Directions
                         </a>
                     </div>
                 </div>
@@ -1731,7 +1731,7 @@
                 <i class="fa-solid fa-map-location-dot" style="font-size: 2.5rem; color: var(--accent, #54ead2); opacity: 0.8;"></i>
                 <h3 style="font-size: 1.2rem; margin: 0; color: #e0e6f0;">Discovering Places in <span style="color: var(--accent, #54ead2);">${rawCity}</span></h3>
                 <p style="font-size: 0.92rem; color: #8fa3b8; max-width: 480px; margin: 0; line-height: 1.6;">Real landmark data for this location is not yet available in our curated database, and the live Wikipedia engine did not return verified results. Explore attractions on Google Maps instead.</p>
-                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">ðŸ—ºï¸ Explore on Google Maps</a>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-directions" style="margin-top: 0.5rem; padding: 0.7rem 1.5rem; font-size: 0.9rem;">🗺️ Explore on Google Maps</a>
             </div>
         `;
     }
